@@ -1,0 +1,44 @@
+<h5>Location</h5>
+
+<ng-container *ngIf="data$ | async as data">
+
+  <div class="btn-toolbar" role="toolbar">
+    <div class="btn-group mr-2" role="group">
+      <div ngbDropdown class="d-inline-block" container="body">
+        <button class="btn btn-outline-primary"
+          ngbDropdownToggle>{{selectedRoot ? selectedRoot.name : 'Select state' }}</button>
+        <div ngbDropdownMenu>
+          <button ngbDropdownItem [ngClass]="{'font-weight-bold': selectedRoot === null}"
+            (click)="selectRoot(null)">none</button>
+          <button ngbDropdownItem *ngFor="let item of data.items" [ngClass]="{'font-weight-bold': selectedRoot === item}"
+            (click)="selectRoot(item)">
+            {{item.name}}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-group mr-2" role="group">
+      <div ngbDropdown class="d-inline-block" container="body">
+        <button class="btn btn-outline-primary" [disabled]="!selectedRoot"
+          ngbDropdownToggle>{{selectedProvince ? selectedProvince.name : 'Select province'}}</button>
+        <div ngbDropdownMenu *ngIf="selectedRoot">
+          <button ngbDropdownItem [ngClass]="{'font-weight-bold': selectedProvince === null}"
+            (click)="selectedProvince = null">none</button>
+          <button ngbDropdownItem *ngFor="let item of selectedRoot.children"
+            [ngClass]="{'font-weight-bold': selectedProvince === item}" (click)="selectedProvince = item">
+            {{item.name}}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="map" leaflet [leafletOptions]="options" [leafletFitBounds]="data.center">
+    <ng-container *ngIf="selectedRoot" [ngSwitch]="selectedRoot.id">
+      <div *ngSwitchCase="'GM'" [leafletLayer]="data.layers.germany"></div>
+      <div *ngSwitchCase="'PL'" [leafletLayer]="data.layers.poland"></div>
+    </ng-container>
+    <div *ngIf="!selectedRoot" [leafletLayer]="data.layers.all"></div>
+  </div>
+
+</ng-container>
