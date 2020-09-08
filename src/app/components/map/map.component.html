@@ -20,12 +20,12 @@
     <div class="btn-group mr-2" role="group">
       <div ngbDropdown class="d-inline-block" container="body">
         <button class="btn btn-outline-primary" [disabled]="!selectedRoot"
-          ngbDropdownToggle>{{selectedProvince ? selectedProvince.name : 'Select province'}}</button>
+          ngbDropdownToggle>{{data.selectedProvince ? data.selectedProvince.name : 'Select province'}}</button>
         <div ngbDropdownMenu *ngIf="selectedRoot">
-          <button ngbDropdownItem [ngClass]="{'font-weight-bold': selectedProvince === null}"
-            (click)="selectedProvince = null">none</button>
+          <button ngbDropdownItem [ngClass]="{'font-weight-bold': data.selectedProvince === null}"
+            (click)="selectProvince(null)">none</button>
           <button ngbDropdownItem *ngFor="let item of selectedRoot.children"
-            [ngClass]="{'font-weight-bold': selectedProvince === item}" (click)="selectedProvince = item">
+            [ngClass]="{'font-weight-bold': data.selectedProvince === item}" (click)="selectProvince(item)">
             {{item.name}}
           </button>
         </div>
