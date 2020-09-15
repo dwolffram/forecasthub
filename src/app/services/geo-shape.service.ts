@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 
 export class GeoShape {
@@ -84,14 +84,14 @@ export class GeoShapeService {
           };
         })
       }))
+      .pipe(shareReplay(1));
   }
 
-  // TODO: ID_1 auf fips_10 mappen
   getPoland(): Observable<GeoShape[]> {
     return this.http.get<any>(this._urls.poland)
       .pipe(map(x => {
         return x.features.map(f => {
-          if(!this.polandID1ToFips10Map.has(f.properties.ID_1)) throw new Error(`Unmappable id_1 value '${f.properties.ID_1}' while loading polish provinces.`)
+          if (!this.polandID1ToFips10Map.has(f.properties.ID_1)) throw new Error(`Unmappable id_1 value '${f.properties.ID_1}' while loading polish provinces.`)
 
           const id = this.polandID1ToFips10Map.get(f.properties.ID_1);
           return {
@@ -100,7 +100,8 @@ export class GeoShapeService {
             geom: { ...f, properties: { name: f.properties.NAME_1, id: id }, id }
           };
         });
-      }));
+      }))
+      .pipe(shareReplay(1));;
   }
 
   getAll(): Observable<GeoShape[]> {
@@ -115,6 +116,7 @@ export class GeoShapeService {
           },
           "id": r.fields.fips_10
         }
-      }))));
+      }))))
+      .pipe(shareReplay(1));;
   }
 }

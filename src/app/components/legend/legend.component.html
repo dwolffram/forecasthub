@@ -1,0 +1,22 @@
+<ul class="list-unstyled">
+  <li *ngFor="let item of items">
+    <ng-container *ngTemplateOutlet="itemTemplate;context: {$implicit: item}"></ng-container>
+    <ul class="list-unstyled ml-3">
+      <li *ngFor="let forecast of item.forecasts">
+        <ng-container *ngTemplateOutlet="itemTemplate;context: {$implicit: forecast}"></ng-container>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<ng-template #itemTemplate let-item>
+  <span (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item)">
+    <input type="checkbox" [(ngModel)]="item.enabled"> <span class="mx-1">{{item.series.name}}</span>
+
+    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" style="height: 12px; width: 12px;"
+      [ngSwitch]="item.series.style.symbol">
+      <polygon points="6,0 12,12 0,12 " *ngSwitchCase="'triangle'" [attr.fill]="item.series.style.color" />
+      <circle cx="6" cy="6" r="6" *ngSwitchDefault [attr.fill]="item.series.style.color" />
+    </svg>
+  </span>
+</ng-template>

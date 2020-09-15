@@ -1,38 +1,56 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, forkJoin } from 'rxjs';
-import { LocationLookup } from '../models/lookups';
+import { LocationLookupItem, LocationLookup, LocationId, ForecastDateLookup } from '../models/lookups';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import * as _ from 'lodash';
 import * as Papa from 'papaparse';
+import { DataService } from './data.service';
+import { cache } from './service-helper';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class LookupService {
-
   private readonly _urls = {
     location: {
       germany: 'https://raw.githubusercontent.com/KITmetricslab/covid19-forecast-hub-de/master/template/state_codes_germany.csv',
       poland: 'https://raw.githubusercontent.com/KITmetricslab/covid19-forecast-hub-de/master/template/state_codes_poland.csv'
     }
   }
+  private _getCachedLocations: () => Observable<LocationLookup>;
+  private _getCachedForecastDates: () => Observable<ForecastDateLookup>;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private dataService: DataService) {
+    const germanyLu$ = this.readLocation(this._urls.location.germany, LocationId.Germany);
+    const polandLu$ = this.readLocation(this._urls.location.poland, LocationId.Poland);
+    this._getCachedLocations = cache(() => forkJoin([germanyLu$, polandLu$])
+      .pipe(map(([g, p]) => new LocationLookup([g, p]))));
 
-  getLocations(): Observable<LocationLookup[]> {
-    const germanyLu = this.readLocation(this._urls.location.germany, 'GM');
-    const polandLu = this.readLocation(this._urls.location.poland, 'PL');
-    return forkJoin([germanyLu, polandLu]);
+    this._getCachedForecastDates = cache(() => this.dataService.getForecasts()
+      .pipe(map(x => new ForecastDateLookup(_.map(_.uniqBy(x, d => d.timezero.toISOString()), d => d.timezero)))));
   }
 
-  private readLocation(url: string, rootIdentifier: string): Observable<LocationLookup> {
+  getLocations(): Observable<LocationLookup> {
+    return this._getCachedLocations();
+  }
+
+  getForecastDates(): Observable<ForecastDateLookup> {
+    return this._getCachedForecastDates();
+  }
+
+  private readLocation(url: string, rootIdentifier: string): Observable<LocationLookupItem> {
     return this.http.get(url, { responseType: 'text' })
       .pipe(map(x => {
         const parsed = Papa.parse(x, { header: true, skipEmptyLines: true });
         const rows = parsed.data.map((r: any) => ({ id: r.state_code, name: r.state_name }));
         const root = _.find(rows, { id: rootIdentifier });
-        return new LocationLookup({ ...root, children: _.orderBy(_.without(rows, root).map(l => new LocationLookup(l)), 'name') });
+
+        const rootLu = new LocationLookupItem(root);
+        rootLu.children = _.orderBy(_.without(rows, root).map(l => new LocationLookupItem({ ...l, parent: rootLu })), x => x.name);
+        return rootLu;
       }));
   }
+
 }

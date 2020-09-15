@@ -1,8 +1,8 @@
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
 import { LookupService } from 'src/app/services/lookup.service';
 import { Observable, forkJoin, BehaviorSubject, Subject, combineLatest } from 'rxjs';
 import { map, tap, timeout } from 'rxjs/operators';
-import { LocationLookup } from 'src/app/models/lookups';
+import { LocationLookupItem, LocationId } from 'src/app/models/lookups';
 import * as L from 'leaflet';
 import * as _ from 'lodash';
 import { GeoShapeService, GeoShape } from 'src/app/services/geo-shape.service';
@@ -13,9 +13,13 @@ import { GeoShapeService, GeoShape } from 'src/app/services/geo-shape.service';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit {
+export class MapComponent implements OnInit, OnChanges {
+  @Input() location: LocationLookupItem;
+  @Output() locationChanged: EventEmitter<LocationLookupItem> = new EventEmitter<LocationLookupItem>();
+
   data$: Observable<any>;
-  selectedRoot: LocationLookup = null;
+  selectedRoot: LocationLookupItem = null;
+  LocationIds = LocationId;
 
   options = {
     layers: [
@@ -23,7 +27,7 @@ export class MapComponent implements OnInit {
     ],
   }
 
-  private selectedProvince$: Subject<LocationLookup> = new BehaviorSubject(null);
+  private selectedProvince$: Subject<LocationLookupItem> = new BehaviorSubject(null);
 
   constructor(private luService: LookupService, private shapeService: GeoShapeService, private zone: NgZone) { }
 
@@ -31,36 +35,68 @@ export class MapComponent implements OnInit {
     const loadLuAndMaps$ = forkJoin([this.luService.getLocations(), this.shapeService.getGermany(), this.shapeService.getPoland(), this.shapeService.getAll()])
 
     this.data$ = combineLatest(loadLuAndMaps$, this.selectedProvince$)
-      .pipe(map(([[items, germany, poland, all], selectedProvince]) => {
-        const gLAyer = this.createProvinceLayer(germany, _.find(items, { id: 'GM' }).children, selectedProvince);
-        const pLayer = this.createProvinceLayer(poland, _.find(items, { id: 'PL' }).children, selectedProvince);
+      .pipe(map(([[locationLu, germany, poland, all], selectedProvince]) => {
+
+        const gLAyer = this.createProvinceLayer(germany, locationLu.get(LocationId.Germany).children, selectedProvince);
+        const pLayer = this.createProvinceLayer(poland, locationLu.get(LocationId.Poland).children, selectedProvince);
 
         const allLayer = L.geoJSON(
           <any>all.map(r => r.geom),
           {
-            style: () => ({ color: '#ff0000' }),
+            style: (feature) => ({
+              color: '#ff0000',
+              weight: this.selectedRoot ? 1 : 2,
+              opacity: this.selectedRoot ? (this.selectedRoot.id !== feature.id ? 1 : 0) : 1,
+              fillOpacity: this.selectedRoot ? (this.selectedRoot.id !== feature.id ? .4 : 0) : .4
+            }),
+            // filter: (feature) => {
+            //   if (this.selectedRoot) {
+            //     return this.selectedRoot.id !== feature.id;
+            //   }
+            //   return true;
+            // },
             onEachFeature: (feature, layer) => {
               layer.on('click', (x) => {
-                const selected = _.find(items, { id: x.target.feature.id });
+                const selected = _.find(locationLu.items, { id: x.target.feature.id });
                 this.zone.run(() => this.selectRoot(selected));
               });
             }
           });
 
+        const allLayerBounds = allLayer.getBounds();
         return {
-          center: allLayer.getBounds(),
-          items: items,
+          maxBounds: allLayerBounds.pad(0.3),
+          items: locationLu.items,
           selectedProvince: selectedProvince,
           layers: {
-            germany: gLAyer,
-            poland: pLayer,
-            all: allLayer
+            [LocationId.Germany]: { instance: gLAyer, bounds: gLAyer.getBounds() },
+            [LocationId.Poland]: { instance: pLayer, bounds: pLayer.getBounds() },
+            all: { instance: allLayer, bounds: allLayerBounds }
           }
         }
       }));
   }
 
-  private createProvinceLayer(shapes: GeoShape[], provinceItems: LocationLookup[], selectedProv: LocationLookup) {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.location) {
+      this.updateSelectedLocation();
+    }
+  }
+  private updateSelectedLocation() {
+    if (!this.location) {
+      this.selectedRoot = null;
+      this.selectedProvince$.next(null);
+    }
+    else if (this.location.parent) {
+      this.selectedRoot = this.location.parent;
+      this.selectedProvince$.next(this.location);
+    } else {
+      this.selectedRoot = this.location;
+      this.selectedProvince$.next(null);
+    }
+  }
+
+  private createProvinceLayer(shapes: GeoShape[], provinceItems: LocationLookupItem[], selectedProv: LocationLookupItem) {
     const geojsonData = shapes.map(r => r.geom);
     return L.geoJSON(<any>geojsonData, {
       onEachFeature: (feature, layer) => {
@@ -70,21 +106,24 @@ export class MapComponent implements OnInit {
 
         layer.on('click', (x) => {
           const selected = _.find(provinceItems, { id: x.target.feature.id });
-          this.zone.run(() => this.selectProvince(selected));
+          const toSelect = selected === selectedProv ? null : selected;
+          this.zone.run(() => this.selectProvince(toSelect));
         });
       },
       style: (f: any) => ({ color: selectedProv && f.properties.id === selectedProv.id ? 'black' : '#ff7800' })
     })
   }
 
-  selectRoot(item: LocationLookup) {
+  selectRoot(item: LocationLookupItem) {
     this.selectedRoot = item;
-    this.selectProvince(null);
+    this.selectedProvince$.next(null);
+    this.locationChanged.emit(item);
   }
 
-  selectProvince(item: LocationLookup) {
+  selectProvince(item: LocationLookupItem) {
     // this.selectedProvince = item;
     this.selectedProvince$.next(item);
+    this.locationChanged.emit(item ? item : this.selectedRoot);
   }
 
 }

@@ -1,0 +1,32 @@
+<h5>Title and settings</h5>
+
+<div class="row">
+  <div class="col-12">
+    <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="onPlotValueChanged($event)"
+      [ngModel]="plotValue">
+      <label ngbButtonLabel class="btn-primary">
+        <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedCases"> Cumulated Cases
+      </label>
+      <label ngbButtonLabel class="btn-primary">
+        <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedDeath"> Cumulated Death
+      </label>
+      <label ngbButtonLabel class="btn-primary">
+        <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceCases"> Incidence Cases
+      </label>
+      <label ngbButtonLabel class="btn-primary">
+        <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceDeath"> Incidence Death
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div ngbDropdown class="d-inline-block">
+      <button class="btn btn-outline-primary" ngbDropdownToggle>{{forecastDate | date}}</button>
+      <div ngbDropdownMenu *ngIf="_forecastDates$ | async as forecastDates">
+        <button ngbDropdownItem *ngFor="let date of forecastDates.items" (click)="changeForecast(date)">{{date | date}}</button>
+      </div>
+    </div>
+  </div>
+</div>
