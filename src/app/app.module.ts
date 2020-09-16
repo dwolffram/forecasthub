@@ -14,7 +14,6 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import { TitleSettingsComponent } from './components/title-settings/title-settings.component';
 import { FormsModule } from '@angular/forms';
 import { LegendComponent } from './components/legend/legend.component';
-import { PlotContainerComponent } from './components/plot-container/plot-container.component';
 
 @NgModule({
   declarations: [
@@ -25,7 +24,6 @@ import { PlotContainerComponent } from './components/plot-container/plot-contain
     ForecastPlotComponent,
     TitleSettingsComponent,
     LegendComponent,
-    PlotContainerComponent
   ],
   imports: [
     BrowserModule,

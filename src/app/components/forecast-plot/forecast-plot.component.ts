@@ -1,6 +1,6 @@
-import { Component, OnInit, Input, SimpleChanges, OnChanges } from '@angular/core';
-import { Observable, BehaviorSubject, Subject, combineLatest, forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Component, OnInit, Input, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
+import { Observable, BehaviorSubject, Subject, combineLatest, forkJoin, Subscription } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
 import { EChartOption, ECharts } from 'echarts';
 import * as _ from 'lodash';
 import { LocationLookupItem, LocationId, LocationLookup } from 'src/app/models/lookups';
@@ -12,61 +12,61 @@ import { ForecastToPlotDto } from 'src/app/models/forecast-to-plot.dto';
 import { off } from 'process';
 import { LookupService } from 'src/app/services/lookup.service';
 import * as moment from 'moment';
-import { SeriesInfo } from '../plot-container/plot-container.component';
+import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
+import { SeriesInfo } from 'src/app/models/series-info';
 
 @Component({
   selector: 'app-forecast-plot',
   templateUrl: './forecast-plot.component.html',
   styleUrls: ['./forecast-plot.component.scss']
 })
-export class ForecastPlotComponent implements OnInit, OnChanges {
-
-  @Input() dataSources: SeriesInfo[];
-  @Input() forecasts: SeriesInfo[];
-  @Input() maxDate: moment.Moment;
-  @Input() forecastDate: moment.Moment;
-  @Input() highlight: SeriesInfo[];
-
-  private _dataSourceSeries: any[];
-  private _forecastSeries: any[];
-  private _forecastDateSeries: any;
+export class ForecastPlotComponent implements OnInit, OnDestroy {
   private _lastDataZoom: { start: any; end: any; };
 
-  chartOption: EChartOption<EChartOption.Series>;
   private _chart: ECharts;
+  private _highlightSubscription: Subscription;
 
+  chartOption$: Observable<EChartOption<EChartOption.Series>>;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.dataSources || changes.forecasts || changes.forecastDate) {
-      if (changes.dataSources) {
-        this._dataSourceSeries = this._createDataSourceSeries(this.dataSources);
-      }
-      if (changes.forecasts) {
-        this._forecastSeries = this._createForecastSeries(this.forecasts);
-      }
-      if (changes.forecastDate) {
-        this._forecastDateSeries = this._createForecastLine(this.forecastDate);
-      }
-      this._updateChartOption();
-    }
+  constructor(private stateService: ForecastPlotService) {
 
-    this._updateHighlight();
   }
 
-  private _updateHighlight() {
+  ngOnDestroy(): void {
+    this._highlightSubscription.unsubscribe();
+  }
+
+  ngOnInit(): void {
+    this._highlightSubscription = this.stateService.highlightedSeries$.subscribe(x => this._updateHighlight(x));
+
+    this.chartOption$ = combineLatest([
+      this.stateService.activeSeries$
+        .pipe(map(x => this._createSeries(x))),
+      this.stateService.forecastDate$
+        .pipe(map(x => this._createForecastLine(x))),
+      this.stateService.maxDate$
+    ]).pipe(map(([series, forecastDateSeries, maxDate]) => {
+      const allSeries = (series || []).concat([forecastDateSeries]);
+      const r = this._createChartOption(allSeries, maxDate);
+      console.log("created chartOptions", r, "for", allSeries, maxDate);
+      return r;
+    })).pipe(tap(() => setTimeout(() => this._updateHighlight(this.stateService.highlightedSeries))));
+  }
+
+  onDataZoom(event) {
+    const dataZoom = event.batch[0];
+    this._lastDataZoom = { start: dataZoom.start, end: dataZoom.end };
+  }
+
+  onChartInit(event: ECharts) {
+    this._chart = event;
+  }
+
+  private _updateHighlight(highlights: SeriesInfo[]) {
     if (this._chart) {
-      if (this.highlight && this.highlight.length > 0) {
-        const h = _.map(this.highlight, x => x.name);
-        setTimeout(() => {
-          // console.log("PERFORMING HIGHLIGHT", {
-          //   type: 'highlight',
-          //   seriesName: h
-          // });
-          this._chart.dispatchAction({
-            type: 'highlight',
-            seriesName: h
-          });
-        }, 80);
+      if (highlights && highlights.length > 0) {
+        const seriesName = _.map(highlights, x => x.name);
+        this._chart.dispatchAction({ type: 'highlight', seriesName });
       } else {
         this._chart.dispatchAction({ type: 'downplay' });
       }
@@ -74,22 +74,11 @@ export class ForecastPlotComponent implements OnInit, OnChanges {
     }
   }
 
-  private _updateChartOption(): void {
+  private _createChartOption(series: any[], maxDate: moment.Moment): EChartOption<EChartOption.Series> {
     const dzXInside: any = { type: 'inside', filterMode: 'filter', xAxisIndex: 0 };
     if (this._lastDataZoom) {
       dzXInside.start = this._lastDataZoom.start;
       dzXInside.end = this._lastDataZoom.end;
-    }
-
-    let series = [];
-    if (this._dataSourceSeries) {
-      series = series.concat(this._dataSourceSeries);
-    }
-    if (this._forecastSeries) {
-      series = series.concat(this._forecastSeries);
-    }
-    if (this._forecastDateSeries) {
-      series = series.concat([this._forecastDateSeries]);
     }
 
     const xAxis: any = {
@@ -102,11 +91,17 @@ export class ForecastPlotComponent implements OnInit, OnChanges {
       }
     };
 
-    if (this.maxDate) {
-      xAxis.max = this.maxDate.toDate()
+    if (maxDate) {
+      xAxis.max = maxDate.toDate();
     }
 
-    this.chartOption = {
+    return {
+      grid: {
+        top: 20,
+        left: 60,
+        right: 20,
+        bottom: 20
+      },
       xAxis: xAxis,
       yAxis: { type: 'value', scale: true },
       tooltip: { trigger: 'axis' },
@@ -115,62 +110,9 @@ export class ForecastPlotComponent implements OnInit, OnChanges {
     };
   }
 
-  constructor() { }
-
-  ngOnInit(): void {
-    // this.chartData$ = combineLatest([
-    //   combineLatest(
-    //     this._location$,
-    //     this._plotValue$
-    //   ),
-    //   // this._zoom$,
-    //   forkJoin([this.dataService.getEcdcData(), this.dataService.getJhuData()]),
-    //   this._forecastDate$,
-    //   this.dataService.getForecasts(),
-    //   this.lookupService.getForecastDates()
-    // ]).pipe(map(([[location, plotValue], [ecdc, jhu], forecastDate, forecasts, forecastDateLus]) => {
-
-    //   const forecastDateLine = this.createForecastLine(forecastDate);
-    //   const series: any[] = [ecdcSeries, jhuSeries, ...forecastSeries, forecastDateLine];
-    //   const seriesInfo: SeriesInfo[] = [
-    //     { name: ecdcSeries.name, enabled: true, style: { color: 'red', fillColor: 'red', symbol: 'circle' } },
-    //     { name: jhuSeries.name, enabled: true, style: { color: 'darkblue', fillColor: 'darkblue', symbol: 'triangle' } },
-    //     ...forecastSeries.map(x => ({ name: x.name, enabled: true, style: { color: x.color, fillColor: 'none', symbol: 'circle' } }))
-    //   ]
-
-    //   const defaultChartOption = this.getDefaultChartOptions();
-    //   return {
-    //     chartOption: {
-    //       ...defaultChartOption,
-    //       xAxis: {
-    //         ...defaultChartOption.xAxis,
-    //         max: moment(forecastDateLus.maximum).add(6, 'w').toDate()
-    //       },
-    //       series
-    //     },
-    //     seriesInfo,
-    //     debug: {}
-    //   };
-    // }));
-  }
-
-  onDataZoom(event) {
-    const dataZoom = event.batch[0];
-    this._lastDataZoom = { start: dataZoom.start, end: dataZoom.end };
-  }
-
-  onChartInit(event: ECharts) {
-    this._chart = event;
-  }
-
-  private _createForecastSeries(seriesData: SeriesInfo[]) {
+  private _createSeries(seriesData: SeriesInfo[]) {
     return (seriesData && seriesData.length > 0) ? seriesData.map(x => ({ type: 'line', name: x.name, data: x.data, color: x.style.color, symbol: x.style.symbol })) : [];
   }
-
-  private _createDataSourceSeries(dataSources: SeriesInfo[]) {
-    return (dataSources && dataSources.length > 0) ? dataSources.map(x => ({ type: 'line', name: x.name, data: x.data, color: x.style.color, symbol: x.style.symbol })) : [];
-  }
-
 
   private _createForecastLine(forecastDate: moment.Moment): any {
 
@@ -191,7 +133,5 @@ export class ForecastPlotComponent implements OnInit, OnChanges {
       }
       : null;
   }
-
-
 
 }

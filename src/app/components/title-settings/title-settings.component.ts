@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import * as _ from 'lodash';
 import { ForecastDateLookup } from 'src/app/models/lookups';
+import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
 
 @Component({
   selector: 'app-title-settings',
@@ -12,29 +13,30 @@ import { ForecastDateLookup } from 'src/app/models/lookups';
   styleUrls: ['./title-settings.component.scss']
 })
 export class TitleSettingsComponent implements OnInit {
-
-  @Input() plotValue: TruthToPlotValue;
-  @Output() plotValueChanged: EventEmitter<TruthToPlotValue> = new EventEmitter<TruthToPlotValue>();
-
-  @Input() forecastDate: moment.Moment;
-  @Output() forecastDateChanged: EventEmitter<moment.Moment> = new EventEmitter<moment.Moment>();
-
-  // plotValue: TruthToPlotValue = TruthToPlotValue.CumulatedCases;
   TruthToPlotValue = TruthToPlotValue;
   _forecastDates$: Observable<ForecastDateLookup>;
 
-  constructor(private lookupService: LookupService) { }
+  plotValue$: Observable<TruthToPlotValue>;
+  forecastDate$: any;
+
+  constructor(private lookupService: LookupService, private stateService: ForecastPlotService) {
+    this.plotValue$ = this.stateService.plotValue$;
+    this.forecastDate$ = this.stateService.forecastDate$;
+   }
 
   ngOnInit(): void {
     this._forecastDates$ = this.lookupService.getForecastDates();
   }
 
   onPlotValueChanged(plotValue: TruthToPlotValue) {
-    this.plotValueChanged.emit(plotValue);
+    this.stateService.plotValue = plotValue;
   }
 
-  changeForecast(forecastDate: moment.Moment) {
-    this.forecastDate = forecastDate;
-    this.forecastDateChanged.emit(forecastDate);
+  changeForecastDate(forecastDate: moment.Moment) {
+    this.stateService.forecastDate = forecastDate;
+  }
+
+  changeForecastDateByDir(dir: 'prev' | 'next') {
+    this.stateService.changeForecastDateByDir(dir);
   }
 }

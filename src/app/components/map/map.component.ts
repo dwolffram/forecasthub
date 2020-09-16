@@ -1,11 +1,12 @@
-import { Component, OnInit, NgZone, Input, Output, EventEmitter, SimpleChanges, OnChanges } from '@angular/core';
+import { Component, OnInit, NgZone, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { LookupService } from 'src/app/services/lookup.service';
-import { Observable, forkJoin, BehaviorSubject, Subject, combineLatest } from 'rxjs';
+import { Observable, forkJoin, BehaviorSubject, Subject, combineLatest, Subscription } from 'rxjs';
 import { map, tap, timeout } from 'rxjs/operators';
 import { LocationLookupItem, LocationId } from 'src/app/models/lookups';
 import * as L from 'leaflet';
 import * as _ from 'lodash';
 import { GeoShapeService, GeoShape } from 'src/app/services/geo-shape.service';
+import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
 
 // TODO: dbl click => selectedRoot(null), shapes einfärben
 @Component({
@@ -13,9 +14,9 @@ import { GeoShapeService, GeoShape } from 'src/app/services/geo-shape.service';
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit, OnChanges {
-  @Input() location: LocationLookupItem;
-  @Output() locationChanged: EventEmitter<LocationLookupItem> = new EventEmitter<LocationLookupItem>();
+export class MapComponent implements OnInit, OnDestroy {
+  // @Input() location: LocationLookupItem;
+  // @Output() locationChanged: EventEmitter<LocationLookupItem> = new EventEmitter<LocationLookupItem>();
 
   data$: Observable<any>;
   selectedRoot: LocationLookupItem = null;
@@ -28,8 +29,24 @@ export class MapComponent implements OnInit, OnChanges {
   }
 
   private selectedProvince$: Subject<LocationLookupItem> = new BehaviorSubject(null);
+  private _locationSubscription: Subscription;
 
-  constructor(private luService: LookupService, private shapeService: GeoShapeService, private zone: NgZone) { }
+  constructor(private luService: LookupService, private shapeService: GeoShapeService, private stateService: ForecastPlotService, private zone: NgZone) { }
+
+
+  private updateSelectedLocation(location: LocationLookupItem) {
+    if (!location) {
+      this.selectedRoot = null;
+      this.selectedProvince$.next(null);
+    }
+    else if (location.parent) {
+      this.selectedRoot = location.parent;
+      this.selectedProvince$.next(location);
+    } else {
+      this.selectedRoot = location;
+      this.selectedProvince$.next(null);
+    }
+  }
 
   ngOnInit(): void {
     const loadLuAndMaps$ = forkJoin([this.luService.getLocations(), this.shapeService.getGermany(), this.shapeService.getPoland(), this.shapeService.getAll()])
@@ -75,26 +92,20 @@ export class MapComponent implements OnInit, OnChanges {
           }
         }
       }));
+
+    this._locationSubscription = this.stateService.location$.subscribe(x => this.updateSelectedLocation(x));
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes.location) {
-      this.updateSelectedLocation();
-    }
+  ngOnDestroy(): void {
+    this._locationSubscription.unsubscribe();
   }
-  private updateSelectedLocation() {
-    if (!this.location) {
-      this.selectedRoot = null;
-      this.selectedProvince$.next(null);
-    }
-    else if (this.location.parent) {
-      this.selectedRoot = this.location.parent;
-      this.selectedProvince$.next(this.location);
-    } else {
-      this.selectedRoot = this.location;
-      this.selectedProvince$.next(null);
-    }
-  }
+
+  // ngOnChanges(changes: SimpleChanges): void {
+  //   if (changes.location) {
+  //     this.updateSelectedLocation();
+  //   }
+  // }
+
 
   private createProvinceLayer(shapes: GeoShape[], provinceItems: LocationLookupItem[], selectedProv: LocationLookupItem) {
     const geojsonData = shapes.map(r => r.geom);
@@ -117,13 +128,13 @@ export class MapComponent implements OnInit, OnChanges {
   selectRoot(item: LocationLookupItem) {
     this.selectedRoot = item;
     this.selectedProvince$.next(null);
-    this.locationChanged.emit(item);
+    this.stateService.location = item;
   }
 
   selectProvince(item: LocationLookupItem) {
     // this.selectedProvince = item;
     this.selectedProvince$.next(item);
-    this.locationChanged.emit(item ? item : this.selectedRoot);
+    this.stateService.location = item ? item : this.selectedRoot;
   }
 
 }

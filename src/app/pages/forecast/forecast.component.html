@@ -1,23 +1,23 @@
 <div class="row">
   <div class="col-4">
-    <app-map [location]="location" (locationChanged)="onLocationChanged($event)"></app-map>
+    <app-map></app-map>
   </div>
   <div class="col-8">
-    <app-title-settings [plotValue]="plotValue" (plotValueChanged)="onPlotValueChanged($event)"
-      [forecastDate]="forecastDate" (forecastDateChanged)="onForecastDateChanged($event)"></app-title-settings>
+    <app-title-settings></app-title-settings>
   </div>
 </div>
 
 <div class="row">
-  <div class="col-12">
-    <app-plot-container [location]="location" [forecastDate]="forecastDate" (changeForecastDate)="onForecastDateChanged($event)" [plotValue]="plotValue"></app-plot-container>
+  <div class="col-4">
+    <h5>Legend</h5>
+    <app-legend></app-legend>
   </div>
-
-  <div class="col-12">ScorePlot</div>
+  <div class="col-8">
+    <h5>ForecastPlot</h5>
+    <app-forecast-plot></app-forecast-plot>
+  </div>
 </div>
 
-<ng-template #selectLocation>
-  <div class="alert alert-primary">
-    Please select at least a state.
-  </div>
-</ng-template>
+<div class="row">
+  <div class="col-12">ScorePlot</div>
+</div>

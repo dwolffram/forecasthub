@@ -3,7 +3,7 @@
 <div class="row">
   <div class="col-12">
     <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="onPlotValueChanged($event)"
-      [ngModel]="plotValue">
+      [ngModel]="plotValue$ | async">
       <label ngbButtonLabel class="btn-primary">
         <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedCases"> Cumulated Cases
       </label>
@@ -22,11 +22,14 @@
 
 <div class="row">
   <div class="col-12">
+    <button class="btn btn-primary" (click)="changeForecastDateByDir('next')">prev</button>
     <div ngbDropdown class="d-inline-block">
-      <button class="btn btn-outline-primary" ngbDropdownToggle>{{forecastDate | date}}</button>
+      <button class="btn btn-outline-primary" ngbDropdownToggle>{{forecastDate$ | async | date}}</button>
       <div ngbDropdownMenu *ngIf="_forecastDates$ | async as forecastDates">
-        <button ngbDropdownItem *ngFor="let date of forecastDates.items" (click)="changeForecast(date)">{{date | date}}</button>
+        <button ngbDropdownItem *ngFor="let date of forecastDates.items"
+          (click)="changeForecastDate(date)">{{date | date}}</button>
       </div>
     </div>
+    <button class="btn btn-primary" (click)="changeForecastDateByDir('prev')">next</button>
   </div>
 </div>
