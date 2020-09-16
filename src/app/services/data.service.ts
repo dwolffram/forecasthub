@@ -9,7 +9,7 @@ import { TruthToPlot, TruthToPlotSource, TruthToPlotValue, DataSource } from '..
 import { ForecastToPlot, ForecastToPlotType, ForecastToPlotTarget } from '../models/forecast-to-plot';
 import { ForecastToPlotDto } from '../models/forecast-to-plot.dto';
 import * as _ from 'lodash';
-import { cache } from './service-helper';
+import { cacheTest } from './service-helper';
 
 
 
@@ -30,19 +30,19 @@ export class DataService {
   private _getCachedJhu: () => Observable<DataSource>;
 
   constructor(private http: HttpClient) {
-    this._getCachedForecasts = cache(() => this.http.get(this._urls.forecast, { responseType: 'text' }).pipe(map(x => {
+    this._getCachedForecasts = cacheTest(() => this.http.get(this._urls.forecast, { responseType: 'text' }).pipe(map(x => {
       const parsed = Papa.parse<ForecastToPlotDto>(x, { header: true, skipEmptyLines: true });
       return _.map(parsed.data, (x, i, arr) => this.parseForecastDto(x, i));
     })));
 
-    this._getCachedEcdc = cache(() => this.http.get(this._urls.source.ecdc, { responseType: 'text' }).pipe(map(x => {
+    this._getCachedEcdc = cacheTest(() => this.http.get(this._urls.source.ecdc, { responseType: 'text' }).pipe(map(x => {
       const parsed = Papa.parse<TruthToPlotDto>(x, { header: true, skipEmptyLines: true });
-      return { name: TruthToPlotSource.ECDC, data: parsed.data.map((d, i) => this.parseTruthDto({ ...d, source: TruthToPlotSource.ECDC }, i)) };
+      return { name: TruthToPlotSource.ECDC, data: _.orderBy(parsed.data.map((d, i) => this.parseTruthDto({ ...d, source: TruthToPlotSource.ECDC }, i)), x => x.date) };
     })));
 
-    this._getCachedJhu = cache(() => this.http.get(this._urls.source.jhu, { responseType: 'text' }).pipe(map(x => {
+    this._getCachedJhu = cacheTest(() => this.http.get(this._urls.source.jhu, { responseType: 'text' }).pipe(map(x => {
       const parsed = Papa.parse<TruthToPlotDto>(x, { header: true, skipEmptyLines: true });
-      return { name: TruthToPlotSource.JHU, data: parsed.data.map((d, i) => this.parseTruthDto({ ...d, source: TruthToPlotSource.JHU }, i)) };
+      return { name: TruthToPlotSource.JHU, data: _.orderBy(parsed.data.map((d, i) => this.parseTruthDto({ ...d, source: TruthToPlotSource.JHU }, i)), x => x.date) };
     })));
   }
 
@@ -58,8 +58,6 @@ export class DataService {
   getForecasts(): Observable<ForecastToPlot[]> {
     return this._getCachedForecasts();
   }
-
-
 
   private parseTruthDto(input: TruthToPlotDto, index: number): TruthToPlot {
     return {

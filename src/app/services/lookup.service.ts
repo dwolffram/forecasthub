@@ -6,7 +6,7 @@ import { map, shareReplay } from 'rxjs/operators';
 import * as _ from 'lodash';
 import * as Papa from 'papaparse';
 import { DataService } from './data.service';
-import { cache } from './service-helper';
+import { cacheTest } from './service-helper';
 
 
 @Injectable({
@@ -25,10 +25,10 @@ export class LookupService {
   constructor(private http: HttpClient, private dataService: DataService) {
     const germanyLu$ = this.readLocation(this._urls.location.germany, LocationId.Germany);
     const polandLu$ = this.readLocation(this._urls.location.poland, LocationId.Poland);
-    this._getCachedLocations = cache(() => forkJoin([germanyLu$, polandLu$])
+    this._getCachedLocations = cacheTest(() => forkJoin([germanyLu$, polandLu$])
       .pipe(map(([g, p]) => new LocationLookup([g, p]))));
 
-    this._getCachedForecastDates = cache(() => this.dataService.getForecasts()
+    this._getCachedForecastDates = cacheTest(() => this.dataService.getForecasts()
       .pipe(map(x => new ForecastDateLookup(_.map(_.uniqBy(x, d => d.timezero.toISOString()), d => d.timezero)))));
   }
 

@@ -13,7 +13,7 @@ import { off } from 'process';
 import { LookupService } from 'src/app/services/lookup.service';
 import * as moment from 'moment';
 import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
-import { SeriesInfo } from 'src/app/models/series-info';
+import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo } from 'src/app/models/series-info';
 
 @Component({
   selector: 'app-forecast-plot',
@@ -44,13 +44,17 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
         .pipe(map(x => this._createSeries(x))),
       this.stateService.forecastDate$
         .pipe(map(x => this._createForecastLine(x))),
-      this.stateService.maxDate$
-    ]).pipe(map(([series, forecastDateSeries, maxDate]) => {
+      this.stateService.dateRange$
+    ]).pipe(map(([series, forecastDateSeries, dateRange]) => {
       const allSeries = (series || []).concat([forecastDateSeries]);
-      const r = this._createChartOption(allSeries, maxDate);
-      console.log("created chartOptions", r, "for", allSeries, maxDate);
+      const r = this._createChartOption(allSeries, dateRange);
+      console.log("created chartOptions", r, "for", allSeries, dateRange);
       return r;
-    })).pipe(tap(() => setTimeout(() => this._updateHighlight(this.stateService.highlightedSeries))));
+    }))
+      .pipe(tap(() => {
+        // setTimeout(() => this._resizeChart());
+        setTimeout(() => this._updateHighlight(this.stateService.highlightedSeries));
+      }));
   }
 
   onDataZoom(event) {
@@ -60,6 +64,12 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
   onChartInit(event: ECharts) {
     this._chart = event;
+  }
+
+  private _resizeChart() {
+    if (this._chart) {
+      this._chart.resize();
+    }
   }
 
   private _updateHighlight(highlights: SeriesInfo[]) {
@@ -74,8 +84,10 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     }
   }
 
-  private _createChartOption(series: any[], maxDate: moment.Moment): EChartOption<EChartOption.Series> {
-    const dzXInside: any = { type: 'inside', filterMode: 'filter', xAxisIndex: 0 };
+  private _createChartOption(series: any[], dateRange: [moment.Moment, moment.Moment]): EChartOption<EChartOption.Series> {
+    const dzXInside: any = { type: 'inside', filterMode: 'filter', xAxisIndex: 0, minValueSpan: 1000 * 3600 * 24 * 7 * 10 };
+    const dzXSlider: any = { type: 'slider', filterMode: 'filter', xAxisIndex: 0, minValueSpan: 1000 * 3600 * 24 * 7 * 10 };
+
     if (this._lastDataZoom) {
       dzXInside.start = this._lastDataZoom.start;
       dzXInside.end = this._lastDataZoom.end;
@@ -83,16 +95,19 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     const xAxis: any = {
       type: 'time',
-      interval: 1000 * 3600 * 24,
-      axisLabel: {
-        formatter: (value, index) => {
-          return moment(value).format('YYYY-MM-DD - hh:mm:ss');
-        }
-      }
+      // interval: 1000 * 3600 * 24,
+      minInterval: 1000 * 3600 * 24 * 7,
+      // maxInterval: 1000 * 3600 * 24 * 7 * 2,
+      // axisLabel: {
+      //   formatter: (value, index) => {
+      //     return moment(value).format('YYYY-MM-DD - hh:mm:ss');
+      //   }
+      // }
     };
 
-    if (maxDate) {
-      xAxis.max = maxDate.toDate();
+    if (dateRange) {
+      xAxis.min = dateRange[0].toDate();
+      xAxis.max = dateRange[1].toDate();
     }
 
     return {
@@ -100,18 +115,26 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
         top: 20,
         left: 60,
         right: 20,
-        bottom: 20
+        bottom: 60
       },
       xAxis: xAxis,
       yAxis: { type: 'value', scale: true },
       tooltip: { trigger: 'axis' },
-      dataZoom: [dzXInside],
+      dataZoom: [dzXInside, dzXSlider],
       series: series,
     };
   }
 
   private _createSeries(seriesData: SeriesInfo[]) {
-    return (seriesData && seriesData.length > 0) ? seriesData.map(x => ({ type: 'line', name: x.name, data: x.data, color: x.style.color, symbol: x.style.symbol })) : [];
+    if (!seriesData || seriesData.length === 0) return [];
+    return seriesData.map(x => ({
+      type: 'line',
+      name: x.name,
+      data: x.data.map(d => ([d.x.toDate(), d.y, d.dataPoint])),
+      animation: x.$type === 'forecast',
+      animationDuration: 500,
+      color: x.style.color,
+      symbol: x.style.symbol }));
   }
 
   private _createForecastLine(forecastDate: moment.Moment): any {
@@ -120,6 +143,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       ? {
         type: 'line',
         markLine: {
+          animation: false,
           silent: true,
           symbol: 'none',
           label: {

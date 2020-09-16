@@ -7,7 +7,7 @@ export interface DataSourceSeriesInfo {
   source: TruthToPlotSource;
 
   name: string;
-  data: any[];
+  data: {x: moment.Moment, y: number, dataPoint: any}[];
 
   style: {
     color: string;
@@ -20,7 +20,7 @@ export interface ForecastSeriesInfo {
   targetSource: TruthToPlotSource;
 
   name: string;
-  data: any[];
+  data: {x: moment.Moment, y: number, dataPoint: any}[];
 
   style: {
     color: string;

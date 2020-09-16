@@ -38,9 +38,15 @@ export class LegendComponent implements OnInit {
     const dataSourceSeries = series.filter(x => x.$type === 'dataSource') as DataSourceSeriesInfo[];
     const forecastSeries = series.filter(x => x.$type === 'forecast') as ForecastSeriesInfo[];
 
-
     return _.map(dataSourceSeries, x => {
-      return { series: x, enabled: true, forecasts: forecastSeries.filter(f => f.targetSource === x.source).map(f => ({ series: f, enabled: true })) };
+
+      return {
+        series: x,
+        enabled: this.isEnabledInStateService(x),
+        forecasts: forecastSeries
+          .filter(f => f.targetSource === x.source)
+          .map(f => ({ series: f, enabled: this.isEnabledInStateService(f) }))
+      };
     });
   }
 
@@ -64,8 +70,13 @@ export class LegendComponent implements OnInit {
       item.forecasts.forEach(action);
     }
 
-    this.stateService.enabledSeries = this._collectEnabledSeries(rootItems);
+    this.stateService.enabledSeriesNames = this._collectEnabledSeries(rootItems).map(x => x.name);
     this.onMouseOver(item);
+  }
+
+  private isEnabledInStateService(info: SeriesInfo) {
+    if (this.stateService.enabledSeriesNames === null) return true;
+    return this.stateService.enabledSeriesNames.indexOf(info.name) > -1
   }
 
   private _collectEnabledSeries(rootItems: DataSourceLegendItem[]): SeriesInfo[] {
