@@ -29,7 +29,7 @@ export class LegendComponent implements OnInit {
   constructor(private stateService: ForecastPlotService) { }
 
   ngOnInit(): void {
-    this.items$ = this.stateService.series$.pipe(map(x => this._createLegendItems(x)))
+    this.items$ = this.stateService.series$.pipe(map(x => this._createLegendItems(x.data)))
   }
 
   private _createLegendItems(series: SeriesInfo[]): DataSourceLegendItem[] {

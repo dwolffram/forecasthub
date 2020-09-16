@@ -32,8 +32,8 @@ export class ForecastPlotService implements OnDestroy {
   readonly plotValue$ = this._plotValue.asObservable();
   readonly forecastDate$ = this._forecastDate.asObservable();
   readonly highlightedSeries$ = this._highlightedSeries.asObservable();
-  readonly series$: Observable<SeriesInfo[]>;
-  readonly activeSeries$: Observable<SeriesInfo[]>;
+  readonly series$: Observable<{ data: SeriesInfo[], settings: { location: LocationLookupItem, plotValue: TruthToPlotValue, forecastDate: moment.Moment } }>;
+  readonly activeSeries$: Observable<{ data: SeriesInfo[], settings: { location: LocationLookupItem, plotValue: TruthToPlotValue, forecastDate: moment.Moment } }>;
   readonly enabledSeriesNames$ = this._enabledSeriesNames.asObservable();
   readonly dateRange$ = this._dateRange.asObservable();
 
@@ -103,32 +103,30 @@ export class ForecastPlotService implements OnDestroy {
         const ecdcSeries = this.createTruthSeries(ecdc, location, plotValue);
         const jhuSeries = this.createTruthSeries(jhu, location, plotValue);
 
-        return [ecdcSeries, jhuSeries].filter(x => x != null);
+        return { data: [ecdcSeries, jhuSeries].filter(x => x != null), settings: { location, plotValue } };
       }))
       .pipe(tap(x => console.log(`END dataSources$}`)));
 
-    const forecasts$ = combineLatest([this.dataService.getForecasts(), dataSources$, this.location$, this.plotValue$, this.forecastDate$])
-      .pipe(tap(([data, dataSources, location, plotValue, forecastDate]) => console.log(`START forecasts$ -> ${JSON.stringify(plotValue)}`)))
-      .pipe(map(([data, dataSources, location, plotValue, forecastDate]) => {
-        return this.createForecastSeries(data, dataSources, location, plotValue, forecastDate);
-      }))
-      .pipe(tap(x => console.log(`END forecasts$}`)));
+    this.series$ = combineLatest([this.dataService.getForecasts(), dataSources$, this.forecastDate$])
+      .pipe(tap(([data, dataSources, forecastDate]) => console.log(`START forecasts$ -> ${JSON.stringify(dataSources.settings.plotValue)}`)))
+      .pipe(map(([data, dataSources, forecastDate]) => {
+        const fc = this.createForecastSeries(data, dataSources.data, dataSources.settings.location, dataSources.settings.plotValue, forecastDate);
+        const ds = dataSources.data;
 
-    this.series$ = combineLatest([dataSources$, forecasts$])
-      .pipe(map(([ds, fc]) => {
         let result: SeriesInfo[] = [];
         if (ds) result = [...ds];
         if (fc) result = [...result, ...fc];
-        return result;
+        return { data: result, settings: { ...dataSources.settings, forecastDate } };
       }))
-      .pipe(tap(x => console.log(`series$`)));
+      .pipe(tap(x => console.log(`END forecasts$}`)));
 
     this.activeSeries$ = combineLatest([this.series$, this.enabledSeriesNames$])
+    .pipe(tap(x => console.log(`START activeSeries$`)))
       .pipe(map(([series, enabledSeriesNames]) => {
         if (!enabledSeriesNames) return series;
-        return series.filter(x => enabledSeriesNames.indexOf(x.name) > -1);
+        return { settings: { ...series.settings }, data: series.data.filter(x => enabledSeriesNames.indexOf(x.name) > -1) };
       }))
-      .pipe(tap(x => console.log(x => `activeSeries$`)));
+      .pipe(tap(x => console.log(`END activeSeries$`)));
   }
 
   ngOnDestroy(): void {
@@ -168,6 +166,11 @@ export class ForecastPlotService implements OnDestroy {
         // ds.data.
         const connectPoint = lastSourceDataPoint && { x: lastSourceDataPoint.x, y: lastSourceDataPoint.y, dataPoint: 'datasourceConnectorPoint' }
         const mappedData = forecastData.map(x => ({ x: x.target.end_date, y: x.value, dataPoint: x }));
+
+        // TODO: connectPoint umbauen auf type = 'observed' in forecast_to_plot
+        // TODO: shift auf ecdc und jhu pro model (value + shiftAndereDatenquelle)
+        // TODO: quantile aus type = 'quantile' in forecast_to_plot 95% = 0.025 + 0.975 50% die anderen
+        // TODO: forecast horizon
         const data = connectPoint ? [connectPoint, ...mappedData] : mappedData;
 
         return {
@@ -203,7 +206,7 @@ export class ForecastPlotService implements OnDestroy {
       .map(d => ({ x: d.date, y: d[plotValue], dataPoint: null }))
       .value();
 
-    if(seriesData.length === 0) return null;
+    if (seriesData.length === 0) return null;
 
     const color = this._dataSourceSeriesColors.get(dataSource.name);
     return { $type: 'dataSource', source: dataSource.name, name: dataSource.name, data: seriesData, style: { symbol: this.getSymbol(dataSource.name), color } };

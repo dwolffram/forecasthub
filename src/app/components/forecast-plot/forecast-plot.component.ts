@@ -41,14 +41,13 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     this.chartOption$ = combineLatest([
       this.stateService.activeSeries$
-        .pipe(map(x => this._createSeries(x))),
-      this.stateService.forecastDate$
-        .pipe(map(x => this._createForecastLine(x))),
+        .pipe(map(x => [this._createForecastLine(x.settings.forecastDate), ...this._createSeries(x.data)])),
+      // this.stateService.forecastDate$
+      //   .pipe(map(x => this._createForecastLine(x))),
       this.stateService.dateRange$
-    ]).pipe(map(([series, forecastDateSeries, dateRange]) => {
-      const allSeries = (series || []).concat([forecastDateSeries]);
-      const r = this._createChartOption(allSeries, dateRange);
-      console.log("created chartOptions", r, "for", allSeries, dateRange);
+    ]).pipe(map(([series, dateRange]) => {
+      const r = this._createChartOption(series, dateRange);
+      console.log("created chartOptions", r, "for", series, dateRange);
       return r;
     }))
       .pipe(tap(() => {
@@ -134,7 +133,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       animation: x.$type === 'forecast',
       animationDuration: 500,
       color: x.style.color,
-      symbol: x.style.symbol }));
+      symbol: x.style.symbol
+    }));
   }
 
   private _createForecastLine(forecastDate: moment.Moment): any {

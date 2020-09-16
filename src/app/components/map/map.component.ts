@@ -8,15 +8,14 @@ import * as _ from 'lodash';
 import { GeoShapeService, GeoShape } from 'src/app/services/geo-shape.service';
 import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
 
-// TODO: dbl click => selectedRoot(null), shapes einfärben
+// TODO: shapes einfärben
+// IDEA: dbl click => selectedRoot(null),
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit, OnDestroy {
-  // @Input() location: LocationLookupItem;
-  // @Output() locationChanged: EventEmitter<LocationLookupItem> = new EventEmitter<LocationLookupItem>();
 
   data$: Observable<any>;
   selectedRoot: LocationLookupItem = null;
