@@ -13,7 +13,7 @@ import { off } from 'process';
 import { LookupService } from 'src/app/services/lookup.service';
 import * as moment from 'moment';
 import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
-import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo } from 'src/app/models/series-info';
+import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, SeriesInfoDataItem } from 'src/app/models/series-info';
 
 @Component({
   selector: 'app-forecast-plot',
@@ -126,15 +126,50 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
   private _createSeries(seriesData: SeriesInfo[]) {
     if (!seriesData || seriesData.length === 0) return [];
-    return seriesData.map(x => ({
-      type: 'line',
-      name: x.name,
-      data: x.data.map(d => ([d.x.toDate(), d.y, d.dataPoint])),
-      animation: x.$type === 'forecast',
-      animationDuration: 500,
-      color: x.style.color,
-      symbol: x.style.symbol
-    }));
+    return _.flatMap(seriesData, (x, i) => {
+
+      const line: any = {
+        type: 'line',
+        name: x.name,
+        data: (x.data as SeriesInfoDataItem[]).map(d => ([d.x.toDate(), d.y, d.dataPoint])),
+        // animation: x.$type === 'forecast',
+        animationDuration: 100,
+        color: x.style.color,
+        symbol: x.style.symbol
+      };
+
+      const band = this._createConfidenceBand(x);
+
+      return [line, ...band];
+    });
+  }
+
+  private _createConfidenceBand(x: SeriesInfo): any[] {
+    if (x.$type === 'forecast') {
+      const intervalData = x.data.filter(x => !!x.interval);
+      if (intervalData.length > 0) {
+        const def = {
+          type: 'line',
+          animationDuration: 500,
+          lineStyle: {
+            opacity: 0
+          },
+          color: x.style.color,
+          stack: 'confidence-band' + x.name,
+          symbol: 'none'
+        };
+
+        return [
+          { ...def, name: x.name + '-confidence-lower', data: intervalData.map(d => [d.x.toDate(), d.interval.lower]) },
+          {
+            ...def, name: x.name + '-confidence-upper', areaStyle: { color: x.style.color, opacity: 0.4 },
+            data: intervalData.map(d => [d.x.toDate(), d.interval.upper - d.interval.lower])
+          }
+        ];
+      }
+    }
+
+    return [];
   }
 
   private _createForecastLine(forecastDate: moment.Moment): any {

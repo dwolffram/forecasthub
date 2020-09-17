@@ -6,6 +6,7 @@ import { tap, map } from 'rxjs/operators';
 import * as _ from 'lodash';
 import { ForecastDateLookup } from 'src/app/models/lookups';
 import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
+import { QuantileType } from 'src/app/models/forecast-to-plot';
 
 @Component({
   selector: 'app-title-settings',
@@ -13,19 +14,23 @@ import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
   styleUrls: ['./title-settings.component.scss']
 })
 export class TitleSettingsComponent implements OnInit {
-  TruthToPlotValue = TruthToPlotValue;
-  _forecastDates$: Observable<ForecastDateLookup>;
+  forecastDates$: Observable<ForecastDateLookup>;
+  forecastDate$: Observable<moment.Moment>;
 
+  TruthToPlotValue = TruthToPlotValue;
   plotValue$: Observable<TruthToPlotValue>;
-  forecastDate$: any;
+
+  QuantileType = QuantileType;
+  confidenceInterval$: Observable<QuantileType>;
 
   constructor(private lookupService: LookupService, private stateService: ForecastPlotService) {
-    this.plotValue$ = this.stateService.plotValue$;
-    this.forecastDate$ = this.stateService.forecastDate$;
    }
 
   ngOnInit(): void {
-    this._forecastDates$ = this.lookupService.getForecastDates();
+    this.forecastDates$ = this.lookupService.getForecastDates();
+    this.plotValue$ = this.stateService.plotValue$;
+    this.forecastDate$ = this.stateService.forecastDate$;
+    this.confidenceInterval$ = this.stateService.confidenceInterval$;
   }
 
   onPlotValueChanged(plotValue: TruthToPlotValue) {
@@ -38,5 +43,9 @@ export class TitleSettingsComponent implements OnInit {
 
   changeForecastDateByDir(dir: 'prev' | 'next') {
     this.stateService.changeForecastDateByDir(dir);
+  }
+
+  changeConfidenceInterval(qType: QuantileType) {
+    this.stateService.confidenceInterval = qType;
   }
 }

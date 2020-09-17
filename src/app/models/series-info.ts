@@ -1,4 +1,17 @@
-import { TruthToPlotSource } from './truth-to-plot';
+import { ForecastToPlot } from './forecast-to-plot';
+import { TruthToPlot, TruthToPlotSource } from './truth-to-plot';
+
+// export interface SeriesInfo {
+//   $type: 'dataSource' | 'forecast';
+
+//   name: string;
+//   data: SeriesInfoDataItem[];
+
+//   style: {
+//     color: string;
+//     symbol: string;
+//   }
+// }
 
 export type SeriesInfo = DataSourceSeriesInfo | ForecastSeriesInfo;
 
@@ -7,7 +20,7 @@ export interface DataSourceSeriesInfo {
   source: TruthToPlotSource;
 
   name: string;
-  data: {x: moment.Moment, y: number, dataPoint: any}[];
+  data: DataSourceSeriesInfoDataItem[];
 
   style: {
     color: string;
@@ -20,10 +33,34 @@ export interface ForecastSeriesInfo {
   targetSource: TruthToPlotSource;
 
   name: string;
-  data: {x: moment.Moment, y: number, dataPoint: any}[];
+  data: ForecastSeriesInfoDataItem[];
 
   style: {
     color: string;
     symbol: string;
   }
+}
+
+export interface DataSourceSeriesInfoDataItem {
+  $type: 'DataSourceSeriesInfoDataItem';
+
+  x: moment.Moment;
+  y: number;
+  dataPoint: TruthToPlot
+}
+
+export interface ForecastSeriesInfoDataItem {
+  $type: 'ForecastSeriesInfoDataItem';
+
+  x: moment.Moment;
+  y: number;
+  dataPoint: ForecastToPlot;
+  interval?: Interval
+}
+
+export type SeriesInfoDataItem = DataSourceSeriesInfoDataItem | ForecastSeriesInfoDataItem
+
+export interface Interval {
+  lower: number;
+  upper: number;
 }

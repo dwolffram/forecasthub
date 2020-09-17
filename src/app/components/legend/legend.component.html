@@ -1,29 +1,71 @@
 <ng-container *ngIf="items$ | async as items; else loading">
-  <ul class="list-unstyled">
-    <li *ngFor="let item of items">
-      <ng-container *ngTemplateOutlet=" itemTemplate;context: {$implicit: item, roots: items}">
+  <table>
+    <tbody>
+      <ng-container *ngFor="let item of items">
+        <tr>
+          <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, items)">
+            <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
+            </ng-container>
+          </td>
+          <td colspan="3" (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)"
+            (click)="toggleEnabled(item, items)"><b>{{item.series.name}}</b></td>
+        </tr>
+
+        <ng-container *ngFor="let forecast of item.forecasts">
+          <tr
+            [ngStyle]="{'background-color': forecast.adjust && forecast.series.targetSource !== item.series.source ? 'lightgrey' : ''}">
+            <td></td>
+            <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(forecast)"
+              (click)="toggleEnabled(forecast, items)">
+              <ng-container
+                *ngTemplateOutlet="icon; context: {$implicit: forecast.series.style, enabled: forecast.enabled}">
+              </ng-container>
+            </td>
+            <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(forecast)"
+              (click)="toggleEnabled(forecast, items)">
+              <b>{{forecast.series.name}}</b>
+            </td>
+            <td><label><input type="checkbox" [(ngModel)]="forecast.adjust" (click)="toggleAdjust(forecast)"> adjust</label>
+            </td>
+          </tr>
+        </ng-container>
       </ng-container>
-      <ul class="list-unstyled ml-3">
-        <li *ngFor="let forecast of item.forecasts">
-          <ng-container *ngTemplateOutlet="itemTemplate;context: {$implicit: forecast, roots: items}"></ng-container>
-        </li>
-      </ul>
-    </li>
-  </ul>
+    </tbody>
+  </table>
 </ng-container>
 
+<!-- <ng-template #itemTemplate let-item let-roots="roots" let-isChild="isChild">
+  <tr style="height: 40px;"
+    [ngStyle]="{'background-color': item.adjust && item.series.targetSource !== '' ? 'lightgrey' : ''}">
+    <ng-container *ngIf="!isChild">
+      <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, roots)">
+        <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
+        </ng-container>
+      </td>
+      <td colspan="2" (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)"
+        (click)="toggleEnabled(item, roots)"><b>{{item.series.name}}</b></td>
+    </ng-container>
+    <ng-container *ngIf="isChild">
+      <td></td>
+      <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, roots)">
+        <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
+        </ng-container>
+      </td>
+      <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, roots)">
+        <b>{{item.series.name}}</b></td>
+    </ng-container>
+    <td><label><input type="checkbox" [(ngModel)]="item.adjust" (click)="toggleAdjust(item)"> adjust</label></td>
+  </tr>
+</ng-template> -->
 
+<ng-template #icon let-style let-enabled="enabled">
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" [ngSwitch]="style.symbol">
+    <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" stroke-width="1" [attr.stroke]="style.color"
+      [attr.fill]="enabled ? style.color : 'transparent'" />
 
-<ng-template #itemTemplate let-item let-roots="roots">
-  <span (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, roots)">
-    <input type="checkbox" [(ngModel)]="item.enabled"> <span class="mx-1">{{item.series.name}}</span>
-
-    <svg version="1.1" xmlns="http://www.w3.org/2000/svg" style="height: 12px; width: 12px;"
-      [ngSwitch]="item.series.style.symbol">
-      <polygon points="6,0 12,12 0,12 " *ngSwitchCase="'triangle'" [attr.fill]="item.series.style.color" />
-      <circle cx="6" cy="6" r="6" *ngSwitchDefault [attr.fill]="item.series.style.color" />
-    </svg>
-  </span>
+    <circle cx="8" cy="8" r="6" *ngSwitchDefault stroke-width="1" [attr.stroke]="style.color"
+      [attr.fill]="enabled ? style.color : 'transparent'" />
+  </svg>
 </ng-template>
 
 <ng-template #loading>

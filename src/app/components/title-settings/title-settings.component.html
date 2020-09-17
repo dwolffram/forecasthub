@@ -25,11 +25,28 @@
     <button class="btn btn-primary" (click)="changeForecastDateByDir('next')">prev</button>
     <div ngbDropdown class="d-inline-block">
       <button class="btn btn-outline-primary" ngbDropdownToggle>{{forecastDate$ | async | date}}</button>
-      <div ngbDropdownMenu *ngIf="_forecastDates$ | async as forecastDates">
+      <div ngbDropdownMenu *ngIf="forecastDates$ | async as forecastDates">
         <button ngbDropdownItem *ngFor="let date of forecastDates.items"
           (click)="changeForecastDate(date)">{{date | date}}</button>
       </div>
     </div>
     <button class="btn btn-primary" (click)="changeForecastDateByDir('prev')">next</button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-12">
+    <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changeConfidenceInterval($event)"
+      [ngModel]="confidenceInterval$ | async">
+      <label ngbButtonLabel class="btn-primary">
+        <input ngbButton type="radio" [value]="null"> None
+      </label>
+      <label ngbButtonLabel class="btn-primary">
+        <input ngbButton type="radio" [value]="QuantileType.Q50"> 50%
+      </label>
+      <label ngbButtonLabel class="btn-primary">
+        <input ngbButton type="radio" [value]="QuantileType.Q95"> 95%
+      </label>
+    </div>
   </div>
 </div>

@@ -4,11 +4,20 @@ import { LocationLookupItem, ForecastDateLookup, LocationLookup } from '../model
 import { TruthToPlotValue, TruthToPlotSource, DataSource } from '../models/truth-to-plot';
 import { LookupService } from './lookup.service';
 import * as moment from 'moment';
-import { ForecastToPlot, ForecastToPlotType } from '../models/forecast-to-plot';
+import { ForecastToPlot, ForecastToPlotType, QuantilePointType, QuantileType } from '../models/forecast-to-plot';
 import * as _ from 'lodash';
 import { DataService } from './data.service';
 import { map, tap, shareReplay } from 'rxjs/operators';
-import { SeriesInfo, ForecastSeriesInfo, DataSourceSeriesInfo } from '../models/series-info';
+import { SeriesInfo, ForecastSeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfoDataItem, Interval, DataSourceSeriesInfoDataItem } from '../models/series-info';
+
+// TODO: forecast horizon
+interface ForecastSettings {
+  location: LocationLookupItem;
+  plotValue: TruthToPlotValue;
+  forecastDate: moment.Moment;
+  seriesAdjustments: Map<string, TruthToPlotSource>;
+  confInterval: QuantileType;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -20,12 +29,13 @@ export class ForecastPlotService implements OnDestroy {
   private readonly _highlightedSeries = new BehaviorSubject<SeriesInfo[]>(null);
   private readonly _enabledSeriesNames = new BehaviorSubject<string[]>(null);
   private readonly _dateRange = new BehaviorSubject<[moment.Moment, moment.Moment]>(null);
-  // private readonly _series;// = new BehaviorSubject<SeriesInfo[]>(null);
+  private readonly _seriesAdjustments = new BehaviorSubject<Map<string, TruthToPlotSource>>(new Map<string, TruthToPlotSource>());
+  private readonly _confidenceInterval = new BehaviorSubject<QuantileType>(null);
 
   private _initSubscription: Subscription;
   private _lookups: { forecastDates: ForecastDateLookup, locations: LocationLookup };
 
-  private _forecastSeriesColors = ['#543005', '#8c510a', '#bf812d', '#dfc27d', '#f6e8c3', '#f5f5f5', '#c7eae5', '#80cdc1', '#35978f', '#01665e', '#003c30'];
+  private _forecastSeriesColors = ['#543005', '#003c30', '#8c510a', '#01665e', '#bf812d', '#35978f', '#dfc27d', '#80cdc1', '#f6e8c3', '#c7eae5', '#f5f5f5',];
   private _dataSourceSeriesColors = new Map<TruthToPlotSource, string>([[TruthToPlotSource.ECDC, 'red'], [TruthToPlotSource.JHU, 'blue']]);
 
   readonly location$ = this._location.asObservable();
@@ -36,6 +46,8 @@ export class ForecastPlotService implements OnDestroy {
   readonly activeSeries$: Observable<{ data: SeriesInfo[], settings: { location: LocationLookupItem, plotValue: TruthToPlotValue, forecastDate: moment.Moment } }>;
   readonly enabledSeriesNames$ = this._enabledSeriesNames.asObservable();
   readonly dateRange$ = this._dateRange.asObservable();
+  readonly seriesAdjustments$ = this._seriesAdjustments.asObservable();
+  readonly confidenceInterval$ = this._confidenceInterval.asObservable();
 
   get location(): LocationLookupItem {
     return this._location.getValue();
@@ -76,6 +88,18 @@ export class ForecastPlotService implements OnDestroy {
     this._forecastDate.next(value);
   }
 
+  get seriesAdjustments(): ReadonlyMap<string, TruthToPlotSource> {
+    return this._seriesAdjustments.getValue();
+  }
+
+  get confidenceInterval(): QuantileType {
+    return this._confidenceInterval.getValue();
+  }
+
+  set confidenceInterval(value: QuantileType) {
+    this._confidenceInterval.next(value);
+  }
+
   constructor(private lookupService: LookupService, private dataService: DataService) {
     this._initSubscription = forkJoin([this.lookupService.getForecastDates(), this.lookupService.getLocations()])
       .subscribe(([dates, locations]) => {
@@ -90,38 +114,44 @@ export class ForecastPlotService implements OnDestroy {
         this._dateRange.next([moment(dates.minimum).add(-3, 'w').endOf('day'), moment(dates.maximum).add(6, 'w').endOf('day')]);
       });
 
+    const allSettings$ = combineLatest([this.location$, this.plotValue$]);
+    const forecastSettings$ = combineLatest([allSettings$, this.forecastDate$, this.seriesAdjustments$, this.confidenceInterval$])
+      .pipe(map(([[location, plotValue], forecastDate, seriesAdjustments, confInterval]) => ({ location, plotValue, forecastDate, seriesAdjustments, confInterval } as ForecastSettings)));
 
     const dataSourceData$ = forkJoin([this.dataService.getEcdcData(), this.dataService.getJhuData()])
       .pipe(shareReplay(1))
       .pipe(tap(x => console.log(`dataSourceData$ -> ${x}`)));
 
-    const dataSources$ = combineLatest([dataSourceData$, this.location$, this.plotValue$])
-      .pipe(tap(([data, location, plotValue]) => console.log(`START dataSources$ -> ${plotValue}`)))
-      .pipe(map(([data, location, plotValue]) => {
+    const dataSources$ = combineLatest([dataSourceData$, allSettings$])
+      .pipe(tap(([data, [location, plotValue]]) => console.log(`START dataSources$ -> ${plotValue}`)))
+      .pipe(map(([data, [location, plotValue]]) => {
         const [ecdc, jhu] = data;
 
         const ecdcSeries = this.createTruthSeries(ecdc, location, plotValue);
         const jhuSeries = this.createTruthSeries(jhu, location, plotValue);
 
-        return { data: [ecdcSeries, jhuSeries].filter(x => x != null), settings: { location, plotValue } };
+        return { settings: { location, plotValue }, data: [ecdcSeries, jhuSeries].filter(x => x != null) };
       }))
       .pipe(tap(x => console.log(`END dataSources$}`)));
 
-    this.series$ = combineLatest([this.dataService.getForecasts(), dataSources$, this.forecastDate$])
-      .pipe(tap(([data, dataSources, forecastDate]) => console.log(`START forecasts$ -> ${JSON.stringify(dataSources.settings.plotValue)}`)))
-      .pipe(map(([data, dataSources, forecastDate]) => {
-        const fc = this.createForecastSeries(data, dataSources.data, dataSources.settings.location, dataSources.settings.plotValue, forecastDate);
-        const ds = dataSources.data;
+    const forecasts$ = combineLatest([this.dataService.getForecasts(), forecastSettings$])
+      // .pipe(tap(([data, dataSources, forecastDate]) => console.log(`START forecasts$ -> ${JSON.stringify(dataSources.settings.plotValue)}`)))
+      .pipe(map(([data, settings]) => ({
+        settings: settings,
+        data: this.createForecastSeries(data, settings)
+      })));
 
-        let result: SeriesInfo[] = [];
-        if (ds) result = [...ds];
-        if (fc) result = [...result, ...fc];
-        return { data: result, settings: { ...dataSources.settings, forecastDate } };
+    this.series$ = combineLatest([dataSources$, forecasts$])
+      .pipe(map(([ds, fc]) => {
+        return {
+          data: [...ds.data, ...fc.data],
+          settings: { ...ds.settings, ...fc.settings }
+        };
       }))
       .pipe(tap(x => console.log(`END forecasts$}`)));
 
     this.activeSeries$ = combineLatest([this.series$, this.enabledSeriesNames$])
-    .pipe(tap(x => console.log(`START activeSeries$`)))
+      .pipe(tap(x => console.log(`START activeSeries$`)))
       .pipe(map(([series, enabledSeriesNames]) => {
         if (!enabledSeriesNames) return series;
         return { settings: { ...series.settings }, data: series.data.filter(x => enabledSeriesNames.indexOf(x.name) > -1) };
@@ -149,29 +179,64 @@ export class ForecastPlotService implements OnDestroy {
     }
   }
 
+  setSeriesAdjustment(adjustments: [ForecastSeriesInfo, TruthToPlotSource][]) {
+    const map = new Map<string, TruthToPlotSource>([...this._seriesAdjustments.getValue().entries()]);
+    adjustments.forEach(([series, adjustTo]) => {
+      if (adjustTo) {
+        map.set(series.name, adjustTo);
+      } else {
+        map.delete(series.name);
+      }
+    });
+    this._seriesAdjustments.next(map);
+  }
 
-  private createForecastSeries(data: ForecastToPlot[], dataSources: DataSourceSeriesInfo[], location: LocationLookupItem, plotValue: TruthToPlotValue, forecastDate: moment.Moment): SeriesInfo[] {
-    if (!location || !plotValue || !forecastDate || !data || data.length === 0) return [];
+  private createForecastSeries(data: ForecastToPlot[], settings: ForecastSettings): ForecastSeriesInfo[] {
+    if (!settings || !settings.location || !settings.plotValue || !settings.forecastDate || !data || data.length === 0) return [];
     return _.chain(data)
-      .filter(x => x.location === location.id && x.type === ForecastToPlotType.Point && x.target.value_type === plotValue && x.timezero.isSame(forecastDate) && dataSources.some(d => d.source === x.truth_data_source))
+      .filter(x => x.location === settings.location.id &&
+        // (x.type === ForecastToPlotType.Point || x.type === ForecastToPlotType.Observed) &&
+        x.target.value_type === settings.plotValue &&
+        x.timezero.isSame(settings.forecastDate))
       .groupBy(x => x.model)
       .map((x, key) => ({ key, value: x }))
       .map((x, index) => {
 
-        const forecastData = _.orderBy(x.value, d => d.target.end_date);
-        const firstDataPoint = _.head(forecastData);
-        const minDate = firstDataPoint.target.end_date;
-        const ds = _.find(dataSources, x => x.source === firstDataPoint.truth_data_source);
-        const lastSourceDataPoint = _.last(_.dropRightWhile(ds.data, x => x.x.isSameOrAfter(minDate)));
-        // ds.data.
-        const connectPoint = lastSourceDataPoint && { x: lastSourceDataPoint.x, y: lastSourceDataPoint.y, dataPoint: 'datasourceConnectorPoint' }
-        const mappedData = forecastData.map(x => ({ x: x.target.end_date, y: x.value, dataPoint: x }));
+        const orderedData = _.chain(x.value).orderBy(d => d.target.end_date);
+        const firstDataPoint = orderedData.head().value();
 
-        // TODO: connectPoint umbauen auf type = 'observed' in forecast_to_plot
-        // TODO: shift auf ecdc und jhu pro model (value + shiftAndereDatenquelle)
-        // TODO: quantile aus type = 'quantile' in forecast_to_plot 95% = 0.025 + 0.975 50% die anderen
-        // TODO: forecast horizon
-        const data = connectPoint ? [connectPoint, ...mappedData] : mappedData;
+        const intervals = settings.confInterval !== null && orderedData.filter(d => d.type === ForecastToPlotType.Quantile)
+          .groupBy(x => x.target.end_date.toISOString())
+          .reduce((prev, curr, key) => {
+            prev.set(key, {
+              lower: _.find(curr, c => c.quantile.type === settings.confInterval && c.quantile.point === QuantilePointType.Lower).value,
+              upper: _.find(curr, c => c.quantile.type === settings.confInterval && c.quantile.point === QuantilePointType.Upper).value
+            });
+            return prev;
+          }, new Map<string, Interval>())
+          .value();
+
+        const data = orderedData
+          .filter(d => d.type === ForecastToPlotType.Point || d.type === ForecastToPlotType.Observed)
+          .map((d, i, array) => {
+            let y = d.value;
+            if (settings.seriesAdjustments && settings.seriesAdjustments.has(x.key)) {
+              const adjustedTo = settings.seriesAdjustments.get(x.key);
+              y += d.shifts.get(adjustedTo);
+            }
+
+            const result = { x: d.target.end_date, y: y, dataPoint: d } as ForecastSeriesInfoDataItem;
+            const isLastObservedPoint = d.type === ForecastToPlotType.Observed && !_.find(array, f => f.type === ForecastToPlotType.Observed, i + 1);
+            if (intervals) {
+              if (intervals.has(result.x.toISOString())) {
+                result.interval = intervals.get(result.x.toISOString());
+              } else if (isLastObservedPoint) {
+                result.interval = { lower: y, upper: y };
+              }
+            }
+
+            return result;
+          }).value();
 
         return {
           $type: 'forecast',
@@ -203,7 +268,7 @@ export class ForecastPlotService implements OnDestroy {
     const seriesData = !location ? [] : _.chain(dataSource.data)
       .filter(x => x.idLocation === location.id)
       .orderBy(x => x.date.toDate())
-      .map(d => ({ x: d.date, y: d[plotValue], dataPoint: null }))
+      .map(d => ({ x: d.date, y: d[plotValue], dataPoint: null } as DataSourceSeriesInfoDataItem))
       .value();
 
     if (seriesData.length === 0) return null;
