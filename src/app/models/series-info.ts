@@ -16,7 +16,7 @@ import { TruthToPlot, TruthToPlotSource } from './truth-to-plot';
 export type SeriesInfo = DataSourceSeriesInfo | ForecastSeriesInfo;
 
 export interface DataSourceSeriesInfo {
-  $type: 'dataSource';
+  $type: 'DataSourceSeriesInfo';
   source: TruthToPlotSource;
 
   name: string;
@@ -28,8 +28,8 @@ export interface DataSourceSeriesInfo {
   }
 }
 
-export interface ForecastSeriesInfo {
-  $type: 'forecast'
+export interface ForecastDateSeriesInfo {
+  $type: 'ForecastDateSeriesInfo'
   targetSource: TruthToPlotSource;
 
   name: string;
@@ -40,6 +40,21 @@ export interface ForecastSeriesInfo {
     symbol: string;
   }
 }
+
+export interface ForecastHorizonSeriesInfo {
+  $type: 'ForecastHorizonSeriesInfo'
+  targetSource: TruthToPlotSource;
+
+  name: string;
+  data: ForecastSeriesInfoDataItem[][];
+
+  style: {
+    color: string;
+    symbol: string;
+  }
+}
+
+export type ForecastSeriesInfo = ForecastDateSeriesInfo | ForecastHorizonSeriesInfo;
 
 export interface DataSourceSeriesInfoDataItem {
   $type: 'DataSourceSeriesInfoDataItem';

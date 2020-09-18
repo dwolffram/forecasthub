@@ -44,8 +44,8 @@ export class LegendComponent implements OnInit {
   private _createLegendItems(series: SeriesInfo[], adjustments: Map<string, TruthToPlotSource>): DataSourceLegendItem[] {
     if (!series || series.length === 0) return [];
 
-    const dataSourceSeries = series.filter(x => x.$type === 'dataSource') as DataSourceSeriesInfo[];
-    const forecastSeries = series.filter(x => x.$type === 'forecast') as ForecastSeriesInfo[];
+    const dataSourceSeries = series.filter(x => x.$type === 'DataSourceSeriesInfo') as DataSourceSeriesInfo[];
+    const forecastSeries = series.filter(x => x.$type === 'ForecastDateSeriesInfo' || x.$type === 'ForecastHorizonSeriesInfo') as ForecastSeriesInfo[];
 
     return _.map(dataSourceSeries, x => {
 

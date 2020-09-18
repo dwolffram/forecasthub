@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import * as _ from 'lodash';
 import { ForecastDateLookup } from 'src/app/models/lookups';
-import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
+import { ForecastDateDisplayMode, ForecastDisplayMode, ForecastHorizonDisplayMode, ForecastPlotService } from 'src/app/services/forecast-plot.service';
 import { QuantileType } from 'src/app/models/forecast-to-plot';
 
 @Component({
@@ -23,14 +23,17 @@ export class TitleSettingsComponent implements OnInit {
   QuantileType = QuantileType;
   confidenceInterval$: Observable<QuantileType>;
 
+  displayMode$: Observable<ForecastDisplayMode>;
+
   constructor(private lookupService: LookupService, private stateService: ForecastPlotService) {
-   }
+  }
 
   ngOnInit(): void {
     this.forecastDates$ = this.lookupService.getForecastDates();
     this.plotValue$ = this.stateService.plotValue$;
-    this.forecastDate$ = this.stateService.forecastDate$;
+    // this.forecastDate$ = this.stateService.forecastDate$;
     this.confidenceInterval$ = this.stateService.confidenceInterval$;
+    this.displayMode$ = this.stateService.displayMode$;
   }
 
   onPlotValueChanged(plotValue: TruthToPlotValue) {
@@ -38,7 +41,7 @@ export class TitleSettingsComponent implements OnInit {
   }
 
   changeForecastDate(forecastDate: moment.Moment) {
-    this.stateService.forecastDate = forecastDate;
+    this.stateService.changeForecastDate(forecastDate);
   }
 
   changeForecastDateByDir(dir: 'prev' | 'next') {
@@ -48,4 +51,13 @@ export class TitleSettingsComponent implements OnInit {
   changeConfidenceInterval(qType: QuantileType) {
     this.stateService.confidenceInterval = qType;
   }
+
+  changeDisplayMode(displayModeType: 'ForecastDateDisplayMode' | 'ForecastHorizonDisplayMode') {
+    this.stateService.changeDisplayMode(displayModeType);
+  }
+
+  changeForecastHorizon(horizon: 1 | 2 | 3 | 4) {
+    this.stateService.changeForecastHorizon(horizon);
+  }
+
 }

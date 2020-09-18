@@ -1,4 +1,4 @@
-import { Component, OnInit, Input, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
+import { Component, OnInit, Input, SimpleChanges, OnChanges, OnDestroy, NgZone } from '@angular/core';
 import { Observable, BehaviorSubject, Subject, combineLatest, forkJoin, Subscription } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { EChartOption, ECharts } from 'echarts';
@@ -13,7 +13,8 @@ import { off } from 'process';
 import { LookupService } from 'src/app/services/lookup.service';
 import * as moment from 'moment';
 import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
-import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, SeriesInfoDataItem } from 'src/app/models/series-info';
+import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, SeriesInfoDataItem, ForecastDateSeriesInfo } from 'src/app/models/series-info';
+import { settings } from 'cluster';
 
 @Component({
   selector: 'app-forecast-plot',
@@ -23,12 +24,12 @@ import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, SeriesInfoDataIte
 export class ForecastPlotComponent implements OnInit, OnDestroy {
   private _lastDataZoom: { start: any; end: any; };
 
-  private _chart: ECharts;
+  private _chart: any;
   private _highlightSubscription: Subscription;
 
   chartOption$: Observable<EChartOption<EChartOption.Series>>;
 
-  constructor(private stateService: ForecastPlotService) {
+  constructor(private stateService: ForecastPlotService, private zone: NgZone) {
 
   }
 
@@ -41,7 +42,13 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     this.chartOption$ = combineLatest([
       this.stateService.activeSeries$
-        .pipe(map(x => [this._createForecastLine(x.settings.forecastDate), ...this._createSeries(x.data)])),
+        .pipe(map(x => {
+          const result = this._createSeries(x.data, x.settings.location);
+          if (x.settings?.displayMode?.$type && x.settings.displayMode.$type === 'ForecastDateDisplayMode') {
+            result.push(this._createForecastLine(x.settings.displayMode.date))
+          }
+          return result;
+        })),
       // this.stateService.forecastDate$
       //   .pipe(map(x => this._createForecastLine(x))),
       this.stateService.dateRange$
@@ -57,12 +64,35 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
   }
 
   onDataZoom(event) {
-    const dataZoom = event.batch[0];
-    this._lastDataZoom = { start: dataZoom.start, end: dataZoom.end };
+    if (event.batch) {
+      const dataZoom = event.batch[0];
+      this._lastDataZoom = { start: dataZoom.start, end: dataZoom.end };
+    } else {
+      this._lastDataZoom = { start: event.start, end: event.end };
+    }
+  }
+
+  onChartClick(event) {
+    console.log("CLICK", event);
   }
 
   onChartInit(event: ECharts) {
     this._chart = event;
+
+    const zr = this._chart.getZr();
+    zr.on('click', x => {
+      const model = this._chart.getModel();
+      const component = model.getComponent('axisPointer');
+      if (component) {
+        const axesInfo: any = _.head(_.values(component.coordSysAxesInfo.axesInfo));
+        if (axesInfo?.axisPointerModel?.option) {
+          this.zone.run(() => {
+            this.stateService.changeForecastDateToClosest(moment(axesInfo.axisPointerModel.option.value))
+          });
+        }
+      }
+    });
+
   }
 
   private _resizeChart() {
@@ -94,14 +124,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     const xAxis: any = {
       type: 'time',
-      // interval: 1000 * 3600 * 24,
       minInterval: 1000 * 3600 * 24 * 7,
-      // maxInterval: 1000 * 3600 * 24 * 7 * 2,
-      // axisLabel: {
-      //   formatter: (value, index) => {
-      //     return moment(value).format('YYYY-MM-DD - hh:mm:ss');
-      //   }
-      // }
     };
 
     if (dateRange) {
@@ -118,34 +141,61 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       },
       xAxis: xAxis,
       yAxis: { type: 'value', scale: true },
-      tooltip: { trigger: 'axis' },
+      tooltip: { trigger: 'axis', axisPointer: { show: true } },
       dataZoom: [dzXInside, dzXSlider],
       series: series,
     };
   }
 
-  private _createSeries(seriesData: SeriesInfo[]) {
+  private _createSeries(seriesData: SeriesInfo[], location: LocationLookupItem) {
     if (!seriesData || seriesData.length === 0) return [];
     return _.flatMap(seriesData, (x, i) => {
+      if (x.$type === 'ForecastHorizonSeriesInfo') {
+        return x.data.map(d => {
+          return {
+            type: 'line',
+            name: x.name,
+            data: d.map(p => ([p.x.toDate(), p.y, p.dataPoint])),
+            markArea: {
+              itemStyle: {
+                color: x.style.color,
+                opacity: 0.4
+              },
+              data: d.filter(p => !!p.interval).map(p => {
+                // p.interval
+                return [
+                  { xAxis: moment(p.x).add(-2, 'd').toDate(), yAxis: p.interval.upper },
+                  { xAxis: moment(p.x).add(2, 'd').toDate(), yAxis: p.interval.lower }
+                ]
+              })
+            },
+            // animation: x.$type === 'forecast',
+            animationDuration: 100,
+            color: x.style.color,
+            symbol: x.style.symbol
+          };
+        });
+      } else {
+        const line: any = {
+          type: 'line',
+          name: x.name,
+          id:  `${location?.id || ''} - ${i}`,
+          data: (x.data as SeriesInfoDataItem[]).map(d => ([d.x.toDate(), d.y, d.dataPoint])),
+          // animation: x.$type === 'ForecastDateSeriesInfo',
+          animationDuration: 500,
+          color: x.style.color,
+          symbol: x.style.symbol
+        };
 
-      const line: any = {
-        type: 'line',
-        name: x.name,
-        data: (x.data as SeriesInfoDataItem[]).map(d => ([d.x.toDate(), d.y, d.dataPoint])),
-        // animation: x.$type === 'forecast',
-        animationDuration: 100,
-        color: x.style.color,
-        symbol: x.style.symbol
-      };
+        const band = this._createConfidenceBand(x);
 
-      const band = this._createConfidenceBand(x);
-
-      return [line, ...band];
+        return [line, ...band];
+      }
     });
   }
 
   private _createConfidenceBand(x: SeriesInfo): any[] {
-    if (x.$type === 'forecast') {
+    if (x.$type === 'ForecastDateSeriesInfo') {
       const intervalData = x.data.filter(x => !!x.interval);
       if (intervalData.length > 0) {
         const def = {
@@ -154,8 +204,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           lineStyle: {
             opacity: 0
           },
+          stack: 'confidence-band - ' + x.name,
           color: x.style.color,
-          stack: 'confidence-band' + x.name,
           symbol: 'none'
         };
 
@@ -168,7 +218,6 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
         ];
       }
     }
-
     return [];
   }
 

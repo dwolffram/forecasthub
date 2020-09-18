@@ -20,17 +20,40 @@
   </div>
 </div>
 
-<div class="row">
+<div class="row" *ngIf="displayMode$ | async as displayMode">
   <div class="col-12">
-    <button class="btn btn-primary" (click)="changeForecastDateByDir('next')">prev</button>
-    <div ngbDropdown class="d-inline-block">
-      <button class="btn btn-outline-primary" ngbDropdownToggle>{{forecastDate$ | async | date}}</button>
-      <div ngbDropdownMenu *ngIf="forecastDates$ | async as forecastDates">
-        <button ngbDropdownItem *ngFor="let date of forecastDates.items"
-          (click)="changeForecastDate(date)">{{date | date}}</button>
-      </div>
-    </div>
-    <button class="btn btn-primary" (click)="changeForecastDateByDir('prev')">next</button>
+    <ul ngbNav #nav="ngbNav" class="nav-pills" [activeId]="displayMode.$type"
+      (activeIdChange)="changeDisplayMode($event)">
+      <li ngbNavItem="ForecastDateDisplayMode">
+        <a ngbNavLink>Date</a>
+        <ng-template ngbNavContent>
+          <button class="btn btn-primary" (click)="changeForecastDateByDir('next', displayMode)">prev</button>
+          <div ngbDropdown class="d-inline-block">
+            <button class="btn btn-outline-primary" ngbDropdownToggle>{{$any(displayMode).date | date}}</button>
+            <div ngbDropdownMenu *ngIf="forecastDates$ | async as forecastDates">
+              <button ngbDropdownItem *ngFor="let date of forecastDates.items"
+                (click)="changeForecastDate(date)">{{date | date}}</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" (click)="changeForecastDateByDir('prev', displayMode)">next</button>
+        </ng-template>
+      </li>
+      <li ngbNavItem="ForecastHorizonDisplayMode">
+        <a ngbNavLink>Horizon</a>
+        <ng-template ngbNavContent>
+          <div ngbDropdown class="d-inline-block">
+            <button class="btn btn-outline-primary" ngbDropdownToggle>{{$any(displayMode).horizon}} ahead</button>
+            <div ngbDropdownMenu>
+              <button ngbDropdownItem (click)="changeForecastHorizon(1)">1 ahead</button>
+              <button ngbDropdownItem (click)="changeForecastHorizon(2)">2 ahead</button>
+              <button ngbDropdownItem (click)="changeForecastHorizon(3)">3 ahead</button>
+              <button ngbDropdownItem (click)="changeForecastHorizon(4)">4 ahead</button>
+            </div>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
+    <div [ngbNavOutlet]="nav"></div>
   </div>
 </div>
 
