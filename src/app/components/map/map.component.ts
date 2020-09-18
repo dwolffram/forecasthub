@@ -1,159 +1,139 @@
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
 import { LookupService } from 'src/app/services/lookup.service';
-import { Observable, forkJoin } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
-import { LocationLookup } from 'src/app/models/lookups';
+import { Observable, forkJoin, BehaviorSubject, Subject, combineLatest, Subscription } from 'rxjs';
+import { map, tap, timeout } from 'rxjs/operators';
+import { LocationLookupItem, LocationId } from 'src/app/models/lookups';
 import * as L from 'leaflet';
 import * as _ from 'lodash';
 import { GeoShapeService, GeoShape } from 'src/app/services/geo-shape.service';
+import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
 
+// TODO: shapes einfärben
+// IDEA: dbl click => selectedRoot(null),
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss']
 })
-export class MapComponent implements OnInit {
-
-  // items$: Observable<LocationLookup[]>;
-
-  // leafletData$: Observable<any>;
+export class MapComponent implements OnInit, OnDestroy {
 
   data$: Observable<any>;
-  selectedRoot: LocationLookup;
-  selectedProvince: LocationLookup;
+  selectedRoot: LocationLookupItem = null;
+  LocationIds = LocationId;
 
   options = {
     layers: [
       L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
     ],
-    zoom: 5,
-    center: L.latLng(46.879966, -121.726909)
   }
 
-  constructor(private luService: LookupService, private shapeService: GeoShapeService, private zone: NgZone) { }
+  private selectedProvince$: Subject<LocationLookupItem> = new BehaviorSubject(null);
+  private _locationSubscription: Subscription;
+
+  constructor(private luService: LookupService, private shapeService: GeoShapeService, private stateService: ForecastPlotService, private zone: NgZone) { }
+
+
+  private updateSelectedLocation(location: LocationLookupItem) {
+    if (!location) {
+      this.selectedRoot = null;
+      this.selectedProvince$.next(null);
+    }
+    else if (location.parent) {
+      this.selectedRoot = location.parent;
+      this.selectedProvince$.next(location);
+    } else {
+      this.selectedRoot = location;
+      this.selectedProvince$.next(null);
+    }
+  }
 
   ngOnInit(): void {
-    // this.initItems();
-    // this.initLeaflet()
+    const loadLuAndMaps$ = forkJoin([this.luService.getLocations(), this.shapeService.getGermany(), this.shapeService.getPoland(), this.shapeService.getAll()])
 
-    // const items$ = ;
+    this.data$ = combineLatest(loadLuAndMaps$, this.selectedProvince$)
+      .pipe(map(([[locationLu, germany, poland, all], selectedProvince]) => {
 
-    // const layerGermany$ = this.shapeService.getGermany()
-    //   .pipe(map(x => {
-    //     const geojsonData = x.map(r => r.geom);
-    //     return L.geoJSON(
-    //       <any>geojsonData,
-    //       { style: () => ({ color: '#ff7800' }) })
-    //   }));
-    // const layerPoland$ = this.shapeService.getPoland()
-    //   .pipe(map(x => {
-    //     const geojsonData = x.map(r => r.geom);
-    //     return L.geoJSON(
-    //       <any>geojsonData,
-    //       { style: () => ({ color: '#ff7800' }) })
-    //   }));
-
-    // const layerAll$ = this.shapeService.getAll()
-    //   .pipe(map(x => {
-    //     const geojsonData = x.map(r => r.geom);
-    //     return L.geoJSON(
-    //       <any>geojsonData,
-    //       {
-    //         style: () => ({ color: '#ff0000' }),
-    //         onEachFeature: (feature, layer) => {
-    //           layer.on('click', (x) => {
-    //             x.target.feature.geometry.properties.id
-    //           })
-    //         }
-    //       })
-    //   }));
-
-    this.data$ = forkJoin([this.luService.getLocations(), this.shapeService.getGermany(), this.shapeService.getPoland(), this.shapeService.getAll()])
-      .pipe(map(([items, germany, poland, all]) => {
-        const gLAyer = this.createProvinceLayer(germany);
-        const pLayer = this.createProvinceLayer(poland);
+        const gLAyer = this.createProvinceLayer(germany, locationLu.get(LocationId.Germany).children, selectedProvince);
+        const pLayer = this.createProvinceLayer(poland, locationLu.get(LocationId.Poland).children, selectedProvince);
 
         const allLayer = L.geoJSON(
           <any>all.map(r => r.geom),
           {
-            style: () => ({ color: '#ff0000' }),
+            style: (feature) => ({
+              color: '#ff0000',
+              weight: this.selectedRoot ? 1 : 2,
+              opacity: this.selectedRoot ? (this.selectedRoot.id !== feature.id ? 1 : 0) : 1,
+              fillOpacity: this.selectedRoot ? (this.selectedRoot.id !== feature.id ? .4 : 0) : .4
+            }),
+            // filter: (feature) => {
+            //   if (this.selectedRoot) {
+            //     return this.selectedRoot.id !== feature.id;
+            //   }
+            //   return true;
+            // },
             onEachFeature: (feature, layer) => {
               layer.on('click', (x) => {
-                const selected = _.find(items, { id: x.target.feature.geometry.properties.id });
+                const selected = _.find(locationLu.items, { id: x.target.feature.id });
                 this.zone.run(() => this.selectRoot(selected));
-              })
+              });
             }
           });
 
+        const allLayerBounds = allLayer.getBounds();
         return {
-          center: allLayer.getBounds(),
-          items: items,
+          maxBounds: allLayerBounds.pad(0.3),
+          items: locationLu.items,
+          selectedProvince: selectedProvince,
           layers: {
-            germany: gLAyer,
-            poland: pLayer,
-            all: allLayer
+            [LocationId.Germany]: { instance: gLAyer, bounds: gLAyer.getBounds() },
+            [LocationId.Poland]: { instance: pLayer, bounds: pLayer.getBounds() },
+            all: { instance: allLayer, bounds: allLayerBounds }
           }
         }
       }));
 
+    this._locationSubscription = this.stateService.location$.subscribe(x => this.updateSelectedLocation(x));
   }
 
-  private createProvinceLayer(shapes: GeoShape[]) {
+  ngOnDestroy(): void {
+    this._locationSubscription.unsubscribe();
+  }
+
+  // ngOnChanges(changes: SimpleChanges): void {
+  //   if (changes.location) {
+  //     this.updateSelectedLocation();
+  //   }
+  // }
+
+
+  private createProvinceLayer(shapes: GeoShape[], provinceItems: LocationLookupItem[], selectedProv: LocationLookupItem) {
     const geojsonData = shapes.map(r => r.geom);
-    return L.geoJSON(<any>geojsonData, { style: () => ({ color: '#ff7800' }) })
+    return L.geoJSON(<any>geojsonData, {
+      onEachFeature: (feature, layer) => {
+        if (selectedProv && selectedProv.id === feature.properties.id) {
+          setTimeout(() => (<any>layer).bringToFront());
+        }
+
+        layer.on('click', (x) => {
+          const selected = _.find(provinceItems, { id: x.target.feature.id });
+          const toSelect = selected === selectedProv ? null : selected;
+          this.zone.run(() => this.selectProvince(toSelect));
+        });
+      },
+      style: (f: any) => ({ color: selectedProv && f.properties.id === selectedProv.id ? 'black' : '#ff7800' })
+    })
   }
 
-  // private initItems() {
-  //   this.items$ = this.luService.getLocations();
-  // }
-
-  // private initLeaflet() {
-  //   const layerGermany$ = this.shapeService.getGermany()
-  //     .pipe(map(x => {
-  //       const geojsonData = x.map(r => r.geom);
-  //       return L.geoJSON(
-  //         <any>geojsonData,
-  //         { style: () => ({ color: '#ff7800' }) })
-  //     }));
-  //   const layerPoland$ = this.shapeService.getPoland()
-  //     .pipe(map(x => {
-  //       const geojsonData = x.map(r => r.geom);
-  //       return L.geoJSON(
-  //         <any>geojsonData,
-  //         { style: () => ({ color: '#ff7800' }) })
-  //     }));
-
-  //   const layerAll$ = this.shapeService.getAll()
-  //     .pipe(map(x => {
-  //       const geojsonData = x.map(r => r.geom);
-  //       return L.geoJSON(
-  //         <any>geojsonData,
-  //         {
-  //           style: () => ({ color: '#ff0000' }),
-  //           onEachFeature: (feature, layer) => {
-  //             layer.on('click', (x) => {
-  //               x.target.feature.geometry.properties.id
-  //             })
-  //           }
-  //         })
-  //     }));
-
-  //   this.leafletData$ = forkJoin([layerGermany$, layerPoland$, layerAll$])
-  //     .pipe(map(x => {
-  //       return {
-  //         center: x[2].getBounds(),
-  //         layers: {
-  //           germany: x[0],
-  //           poland: x[1],
-  //           all: x[2]
-  //         }
-  //       }
-  //     }));
-  // }
-
-  selectRoot(item: LocationLookup) {
+  selectRoot(item: LocationLookupItem) {
     this.selectedRoot = item;
-    this.selectedProvince = null;
+    this.selectedProvince$.next(null);
+    this.stateService.location = item;
+  }
+
+  selectProvince(item: LocationLookupItem) {
+    // this.selectedProvince = item;
+    this.selectedProvince$.next(item);
+    this.stateService.location = item ? item : this.selectedRoot;
   }
 
 }
