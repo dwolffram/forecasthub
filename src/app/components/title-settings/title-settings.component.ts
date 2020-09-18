@@ -29,7 +29,7 @@ export class TitleSettingsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.forecastDates$ = this.lookupService.getForecastDates();
+    this.forecastDates$ = this.lookupService.forecastDates$;
     this.plotValue$ = this.stateService.plotValue$;
     // this.forecastDate$ = this.stateService.forecastDate$;
     this.confidenceInterval$ = this.stateService.confidenceInterval$;

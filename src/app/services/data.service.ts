@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import * as Papa from 'papaparse';
 import * as moment from 'moment';
 import { TruthToPlotDto } from '../models/truth-to-plot.dto';
@@ -25,44 +25,15 @@ export class DataService {
     },
     forecast: 'https://raw.githubusercontent.com/KITmetricslab/covid19-forecast-hub-de/master/app_forecasts_de/data/forecasts_to_plot.csv'
   }
-  private _getCachedForecasts: () => Observable<ForecastToPlot[]>;
-  private _getCachedEcdc: () => Observable<DataSource>;
-  private _getCachedJhu: () => Observable<DataSource>;
+
+  ecdcData$: Observable<DataSource>;
+  jhuData$: Observable<DataSource>;
+  forecasts$: Observable<ForecastToPlot[]>;
 
   constructor(private http: HttpClient) {
-    this._getCachedForecasts = cacheTest(() => this._loadCsvData(this._urls.forecast, (row: ForecastToPlotDto, i) => this.parseForecastDto(row, i))
-      // this.http.get(this._urls.forecast, { responseType: 'text' }).pipe(map(x => {
-      //   const parsed = Papa.parse<ForecastToPlotDto>(x, { header: true, skipEmptyLines: true });
-      //   return _.map(parsed.data, (x, i, arr) => this.parseForecastDto(x, i));
-      // }))
-    );
-
-
-
-    this._getCachedEcdc = cacheTest(() => this._loadDataSource(this._urls.source.ecdc, TruthToPlotSource.ECDC)
-      // this.http.get(this._urls.source.ecdc, { responseType: 'text' }).pipe(map(x => {
-      //   const parsed = Papa.parse<TruthToPlotDto>(x, { header: true, skipEmptyLines: true });
-      //   return { name: TruthToPlotSource.ECDC, data: _.orderBy(parsed.data.map((d, i) => this.parseTruthDto({ ...d, source: TruthToPlotSource.ECDC }, i)), x => x.date) };
-      // }))
-    );
-
-    this._getCachedJhu = cacheTest(() => this._loadDataSource(this._urls.source.jhu, TruthToPlotSource.JHU)
-      // this.http.get(this._urls.source.jhu, { responseType: 'text' }).pipe(map(x => {
-      //   const parsedCsv = Papa.parse<TruthToPlotDto>(x, { header: true, skipEmptyLines: true });
-      //   const parsedData = _.chain(parsedCsv.data).reduce((prev, curr, i) => {
-      //     try {
-      //       prev.data.push(this.parseTruthDto({ ...curr, source: TruthToPlotSource.JHU }, i));
-      //     } catch (error) {
-      //       prev.errors.push(error);
-      //     }
-      //     return prev;
-      //   }, { errors: [], data: [] }).value();
-      //   if (parsedData.errors.length > 0) {
-      //     console.error(`PARSE :: Unable to parse ${parsedData.errors.length} rows in file '${this._urls.source.jhu}'.\n${parsedData.errors.join('\n')}`);
-      //   }
-      //   return { name: TruthToPlotSource.JHU, data: parsedData.data };//_.orderBy(parsed.data.map((d, i) => ), x => x.date)
-      // }))
-    );
+    this.forecasts$ = this._loadCsvData(this._urls.forecast, (row: ForecastToPlotDto, i) => this.parseForecastDto(row, i));
+    this.ecdcData$ = this._loadDataSource(this._urls.source.ecdc, TruthToPlotSource.ECDC);
+    this.jhuData$ = this._loadDataSource(this._urls.source.jhu, TruthToPlotSource.JHU);
   }
 
   private _loadCsvData<T, S>(url: string, rowParser: (row: T, index: number) => S): Observable<S[]> {
@@ -82,42 +53,15 @@ export class DataService {
       }
 
       return parsedData.data;
-    }));
+    })).pipe(shareReplay(1));
   }
 
   private _loadDataSource(url: string, name: TruthToPlotSource): Observable<DataSource> {
     return this._loadCsvData(url, ((row: TruthToPlotDto, i) => this.parseTruthDto({ ...row, source: name }, i)))
       .pipe(map(x => ({ name: name, data: _.orderBy(x, d => d.date) })));
-
-    // return this.http.get(url, { responseType: 'text' }).pipe(map(x => {
-    //   const parsedCsv = Papa.parse<TruthToPlotDto>(x, { header: true, skipEmptyLines: true });
-    //   const parsedData = _.chain(parsedCsv.data).reduce((prev, curr, i) => {
-    //     try {
-    //       prev.data.push(this.parseTruthDto({ ...curr, source: name }, i));
-    //     } catch (error) {
-    //       prev.errors.push(error);
-    //     }
-    //     return prev;
-    //   }, { errors: [], data: [] }).value();
-    //   if (parsedData.errors.length > 0) {
-    //     console.error(`PARSE :: Unable to parse ${parsedData.errors.length} rows in file '${url}'.\n${parsedData.errors.join('\n')}`);
-    //   }
-    //   return { name: name, data: _.orderBy(parsedData.data, x => x.date) };
-    // }))
   }
 
-  getEcdcData(): Observable<DataSource> {
-    return this._getCachedEcdc();
-  }
 
-  getJhuData(): Observable<DataSource> {
-    return this._getCachedJhu();
-  }
-
-  // private forecasts$;
-  getForecasts(): Observable<ForecastToPlot[]> {
-    return this._getCachedForecasts();
-  }
 
   private parseTruthDto(input: TruthToPlotDto, index: number): TruthToPlot {
     return {
@@ -194,7 +138,7 @@ export class DataService {
       //   Q50Upper = '0.75'
     }
 
-const type = parseType(input.type)
+    const type = parseType(input.type)
 
     return {
       forecast_date: this.parseDate(input.forecast_date),

@@ -33,6 +33,7 @@ interface DataSourceLegendItem {
 })
 export class LegendComponent implements OnInit {
   items$: Observable<DataSourceLegendItem[]>;
+  TruthToPlotSource = TruthToPlotSource;
 
   constructor(private stateService: ForecastPlotService) { }
 

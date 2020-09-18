@@ -19,25 +19,17 @@ export class LookupService {
       poland: 'https://raw.githubusercontent.com/KITmetricslab/covid19-forecast-hub-de/master/template/state_codes_poland.csv'
     }
   }
-  private _getCachedLocations: () => Observable<LocationLookup>;
-  private _getCachedForecastDates: () => Observable<ForecastDateLookup>;
+
+  locations$: Observable<LocationLookup>;
+  forecastDates$: Observable<ForecastDateLookup>;
 
   constructor(private http: HttpClient, private dataService: DataService) {
     const germanyLu$ = this.readLocation(this._urls.location.germany, LocationId.Germany);
     const polandLu$ = this.readLocation(this._urls.location.poland, LocationId.Poland);
-    this._getCachedLocations = cacheTest(() => forkJoin([germanyLu$, polandLu$])
-      .pipe(map(([g, p]) => new LocationLookup([g, p]))));
-
-    this._getCachedForecastDates = cacheTest(() => this.dataService.getForecasts()
-      .pipe(map(x => new ForecastDateLookup(_.map(_.uniqBy(x, d => d.timezero.toISOString()), d => d.timezero)))));
-  }
-
-  getLocations(): Observable<LocationLookup> {
-    return this._getCachedLocations();
-  }
-
-  getForecastDates(): Observable<ForecastDateLookup> {
-    return this._getCachedForecastDates();
+    this.locations$ = forkJoin([germanyLu$, polandLu$]).pipe(map(([g, p]) => new LocationLookup([g, p]))).pipe(shareReplay(1));
+    this.forecastDates$ = this.dataService.forecasts$
+      .pipe(map(x => new ForecastDateLookup(_.map(_.uniqBy(x, d => d.timezero.toISOString()), d => d.timezero))))
+      .pipe(shareReplay(1));
   }
 
   private readLocation(url: string, rootIdentifier: string): Observable<LocationLookupItem> {

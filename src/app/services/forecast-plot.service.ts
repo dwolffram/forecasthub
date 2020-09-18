@@ -117,8 +117,9 @@ export class ForecastPlotService implements OnDestroy {
   }
 
   constructor(private lookupService: LookupService, private dataService: DataService) {
-    this._initSubscription = forkJoin([this.lookupService.getForecastDates(), this.lookupService.getLocations()])
+    this._initSubscription = forkJoin([this.lookupService.forecastDates$, this.lookupService.locations$])
       .subscribe(([dates, locations]) => {
+        // TODO: ohne subscription!
         this._lookups = { forecastDates: dates, locations };
 
         if (this.location === null) {
@@ -134,7 +135,7 @@ export class ForecastPlotService implements OnDestroy {
     const forecastSettings$ = combineLatest([allSettings$, this.seriesAdjustments$, this.confidenceInterval$, this.displayMode$])
       .pipe(map(([[location, plotValue], seriesAdjustments, confInterval, displayMode]) => ({ location, plotValue, seriesAdjustments, confInterval, displayMode } as ForecastSettings)));
 
-    const dataSourceData$ = forkJoin([this.dataService.getEcdcData(), this.dataService.getJhuData()])
+    const dataSourceData$ = forkJoin([this.dataService.ecdcData$, this.dataService.jhuData$])
       .pipe(shareReplay(1))
       .pipe(tap(x => console.log(`dataSourceData$ -> ${x}`)));
 
@@ -150,7 +151,7 @@ export class ForecastPlotService implements OnDestroy {
       }))
       .pipe(tap(x => console.log(`END dataSources$}`)));
 
-    const forecasts$ = combineLatest([this.dataService.getForecasts(), forecastSettings$])
+    const forecasts$ = combineLatest([this.dataService.forecasts$, forecastSettings$])
       // .pipe(tap(([data, dataSources, forecastDate]) => console.log(`START forecasts$ -> ${JSON.stringify(dataSources.settings.plotValue)}`)))
       .pipe(map(([data, settings]) => ({
         settings: settings,

@@ -12,7 +12,7 @@ import { ForecastToPlotDto } from 'src/app/models/forecast-to-plot.dto';
 import { off } from 'process';
 import { LookupService } from 'src/app/services/lookup.service';
 import * as moment from 'moment';
-import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
+import { ForecastPlotService, ForecastSettings } from 'src/app/services/forecast-plot.service';
 import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, SeriesInfoDataItem, ForecastDateSeriesInfo } from 'src/app/models/series-info';
 import { settings } from 'cluster';
 
@@ -43,7 +43,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     this.chartOption$ = combineLatest([
       this.stateService.activeSeries$
         .pipe(map(x => {
-          const result = this._createSeries(x.data, x.settings.location);
+          const result = this._createSeries(x.data, x.settings);
           if (x.settings?.displayMode?.$type && x.settings.displayMode.$type === 'ForecastDateDisplayMode') {
             result.push(this._createForecastLine(x.settings.displayMode.date))
           }
@@ -147,7 +147,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     };
   }
 
-  private _createSeries(seriesData: SeriesInfo[], location: LocationLookupItem) {
+  private _createSeries(seriesData: SeriesInfo[], settings: ForecastSettings) {
     if (!seriesData || seriesData.length === 0) return [];
     return _.flatMap(seriesData, (x, i) => {
       if (x.$type === 'ForecastHorizonSeriesInfo') {
@@ -179,7 +179,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
         const line: any = {
           type: 'line',
           name: x.name,
-          id:  `${location?.id || ''} - ${i}`,
+          id:  `${settings?.location?.id || ''} - ${x.name}`,
           data: (x.data as SeriesInfoDataItem[]).map(d => ([d.x.toDate(), d.y, d.dataPoint])),
           // animation: x.$type === 'ForecastDateSeriesInfo',
           animationDuration: 500,

@@ -48,9 +48,9 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    const loadLuAndMaps$ = forkJoin([this.luService.getLocations(), this.shapeService.getGermany(), this.shapeService.getPoland(), this.shapeService.getAll()])
+    const loadLuAndMaps$ = forkJoin([this.luService.locations$, this.shapeService.germany$, this.shapeService.poland$, this.shapeService.all$])
 
-    this.data$ = combineLatest(loadLuAndMaps$, this.selectedProvince$)
+    this.data$ = combineLatest([loadLuAndMaps$, this.selectedProvince$])
       .pipe(map(([[locationLu, germany, poland, all], selectedProvince]) => {
 
         const gLAyer = this.createProvinceLayer(germany, locationLu.get(LocationId.Germany).children, selectedProvince);
