@@ -15,6 +15,8 @@ import { TitleSettingsComponent } from './components/title-settings/title-settin
 import { FormsModule } from '@angular/forms';
 import { LegendComponent } from './components/legend/legend.component';
 import { EchartsZrClickDirective } from './directives/echarts-zr-click.directive';
+import { LocationSelectComponent } from './components/location-select/location-select.component';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
   declarations: [
@@ -26,6 +28,7 @@ import { EchartsZrClickDirective } from './directives/echarts-zr-click.directive
     TitleSettingsComponent,
     LegendComponent,
     EchartsZrClickDirective,
+    LocationSelectComponent,
   ],
   imports: [
     BrowserModule,
@@ -37,6 +40,7 @@ import { EchartsZrClickDirective } from './directives/echarts-zr-click.directive
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
     }),
+    FontAwesomeModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

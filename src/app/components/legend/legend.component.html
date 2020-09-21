@@ -7,7 +7,8 @@
           <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
           </ng-container>
           <span class="ml-1 mr-auto font-weight-bold" [title]="item.series.name">{{ item.series.name }}</span>
-          <button class="btn btn-primary btn-sm shrink-0"  (click)="toggleAdjust(item)">{{ even ? '&gt;&gt;' : '&lt;&lt;'}}
+          <button class="btn btn-secondary btn-sm shrink-0" (click)="toggleAdjust(item)">
+            <fa-icon [icon]="even ? icons.right : icons.left"></fa-icon>
           </button>
         </div>
       </div>
@@ -19,7 +20,9 @@
               *ngTemplateOutlet="icon; context: {$implicit: forecast.series.style, enabled: forecast.enabled}">
             </ng-container>
             <span class="ml-1 mr-auto text-truncate" [title]="forecast.series.name">{{forecast.series.name}}</span>
-            <button class="btn btn-primary btn-sm shrink-0" (click)="toggleAdjust(forecast)">{{ even ? '&gt;&gt;' : '&lt;&lt;'}}
+            <fa-icon *ngIf="forecast.adjust" class="mx-1" [icon]="icons.adjusted" title="This model doesn't belong to this datasource - it's adjusted."></fa-icon>
+            <button class="btn btn-secondary btn-sm shrink-0" (click)="toggleAdjust(forecast)">
+              <fa-icon [icon]="even ? icons.right : icons.left"></fa-icon>
             </button>
           </div>
         </li>

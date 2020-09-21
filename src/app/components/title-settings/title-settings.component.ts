@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import { ForecastDateLookup } from 'src/app/models/lookups';
 import { ForecastDateDisplayMode, ForecastDisplayMode, ForecastHorizonDisplayMode, ForecastPlotService } from 'src/app/services/forecast-plot.service';
 import { QuantileType } from 'src/app/models/forecast-to-plot';
+import { faAngleLeft, faAngleRight, faArrowLeft, faArrowRight } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-title-settings',
@@ -14,8 +15,6 @@ import { QuantileType } from 'src/app/models/forecast-to-plot';
   styleUrls: ['./title-settings.component.scss']
 })
 export class TitleSettingsComponent implements OnInit {
-
-
   TruthToPlotValue = TruthToPlotValue;
   plotValue$: Observable<TruthToPlotValue>;
 
@@ -24,23 +23,19 @@ export class TitleSettingsComponent implements OnInit {
 
   displayMode$: Observable<{ availableDates: ForecastDateLookup; mode: ForecastDisplayMode; }>;
 
-  // forecastDates$: Observable<ForecastDateLookup>;
-  // forecastDate$: Observable<moment.Moment>;
-  // displayMode$: Observable<ForecastDisplayMode>;
-  // displayModeData$: Observable<{ mode: ForecastDisplayMode; dates: ForecastDateLookup; }>;
+  currentDate = new Date();
 
-  // private _forecastDates: ForecastDateLookup;
-
+  icons = {
+    left: faAngleLeft,
+    right: faAngleRight,
+  };
 
   constructor(private lookupService: LookupService, private stateService: ForecastPlotService) {
   }
 
   ngOnInit(): void {
-    // this.forecastDates$ = this.lookupService.forecastDates$;
-
     this.plotValue$ = this.stateService.plotValue$;
     this.confidenceInterval$ = this.stateService.confidenceInterval$;
-    // this.displayMode$ = this.stateService.displayMode$;
 
     this.displayMode$ = combineLatest([
       this.lookupService.forecastDates$,
@@ -82,7 +77,5 @@ export class TitleSettingsComponent implements OnInit {
       throw new Error(`Invalid displayMode type '${displayModeType}'. Unable to change display mode.`);
     }
   }
-
-
 
 }

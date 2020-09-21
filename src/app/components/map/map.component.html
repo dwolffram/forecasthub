@@ -1,46 +1,7 @@
-<h5>Location</h5>
-
-<ng-container *ngIf="data$ | async as data">
-
-  <div class="btn-toolbar" role="toolbar">
-    <div class="btn-group mr-2" role="group">
-      <div ngbDropdown class="d-inline-block" container="body">
-        <button class="btn btn-outline-primary"
-          ngbDropdownToggle>{{selectedRoot ? selectedRoot.name : 'Select state' }}</button>
-        <div ngbDropdownMenu>
-          <button ngbDropdownItem [ngClass]="{'font-weight-bold': selectedRoot === null}"
-            (click)="selectRoot(null)">none</button>
-          <button ngbDropdownItem *ngFor="let item of data.items" [ngClass]="{'font-weight-bold': selectedRoot === item}"
-            (click)="selectRoot(item)">
-            {{item.name}}
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="btn-group mr-2" role="group">
-      <div ngbDropdown class="d-inline-block" container="body">
-        <button class="btn btn-outline-primary" [disabled]="!selectedRoot"
-          ngbDropdownToggle>{{data.selectedProvince ? data.selectedProvince.name : 'Select province'}}</button>
-        <div ngbDropdownMenu *ngIf="selectedRoot">
-          <button ngbDropdownItem [ngClass]="{'font-weight-bold': data.selectedProvince === null}"
-            (click)="selectProvince(null)">none</button>
-          <button ngbDropdownItem *ngFor="let item of selectedRoot.children"
-            [ngClass]="{'font-weight-bold': data.selectedProvince === item}" (click)="selectProvince(item)">
-            {{item.name}}
-          </button>
-        </div>
-      </div>
-    </div>
+<ng-container *ngIf="mapContext$ | async as mapContext">
+  <div id="map" leaflet [leafletOptions]="options" [leafletFitBounds]="mapContext.fitBounds"
+    [leafletMaxBounds]="mapContext.maxBounds">
+    <div [leafletLayer]="mapContext.stateLayer"></div>
+    <div [leafletLayer]="mapContext.provinceLayer"></div>
   </div>
-
-  <div id="map" leaflet [leafletOptions]="options"
-  [leafletFitBounds]="selectedRoot ? data.layers[selectedRoot.id].bounds : data.layers.all.bounds"
-  [leafletMaxBounds]="data.maxBounds">
-    <ng-container *ngIf="selectedRoot" [ngSwitch]="selectedRoot.id">
-      <div *ngSwitchCase="'GM'" [leafletLayer]="data.layers.GM.instance"></div>
-      <div *ngSwitchCase="'PL'" [leafletLayer]="data.layers.PL.instance"></div>
-    </ng-container>
-    <div [leafletLayer]="data.layers.all.instance"></div>
-  </div>
-
 </ng-container>

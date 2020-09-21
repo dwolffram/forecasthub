@@ -1,27 +1,22 @@
 <ng-container *ngIf="activeSeriesLoader$ | async; else loading">
   <div class="row">
-    <div class="col-4">
+    <div class="col-md-4 mb-3">
       <app-map></app-map>
     </div>
-    <div class="col-8">
+    <div class="col-md-8 mb-3">
       <app-title-settings></app-title-settings>
     </div>
   </div>
 
   <div class="row">
-    <div class="col-4">
-      <h5>Legend</h5>
+    <div class="col-md-4">
       <app-legend></app-legend>
     </div>
-    <div class="col-8">
-      <h5>ForecastPlot</h5>
+    <div class="col-md-8">
       <app-forecast-plot></app-forecast-plot>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-12">ScorePlot</div>
-  </div>
 </ng-container>
 
 <ng-template #loading>

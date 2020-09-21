@@ -1,75 +1,147 @@
-<h5>Title and settings</h5>
+<h4 class="display-4">COVID-19 Forecast <small class="text-muted">{{currentDate | date}}</small></h4>
 
-<div class="row">
-  <div class="col-12">
+<div class="row form-group">
+  <label class="col-md-2 col-form-label">Location</label>
+  <div class="col-md-10">
+    <app-location-select></app-location-select>
+  </div>
+</div>
+
+<div class="row form-group">
+  <label class="col-md-2 col-form-label">Target</label>
+  <div class="col-md-10">
     <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="onPlotValueChanged($event)"
       [ngModel]="plotValue$ | async">
-      <label ngbButtonLabel class="btn-primary">
+      <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedCases"> Cumulated Cases
       </label>
-      <label ngbButtonLabel class="btn-primary">
+      <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedDeath"> Cumulated Death
       </label>
-      <label ngbButtonLabel class="btn-primary">
+      <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceCases"> Incidence Cases
       </label>
-      <label ngbButtonLabel class="btn-primary">
+      <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceDeath"> Incidence Death
       </label>
     </div>
   </div>
 </div>
 
-<div class="row" *ngIf="displayMode$ | async as displayMode">
-  <div class="col-12">
-    <ul ngbNav #nav="ngbNav" class="nav-pills" [activeId]="displayMode.mode.$type"
-      (activeIdChange)="changeDisplayMode($event, displayMode.availableDates.maximum)">
-      <li ngbNavItem="ForecastDateDisplayMode">
-        <a ngbNavLink>Date</a>
-        <ng-template ngbNavContent>
-          <button class="btn btn-primary" (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)">prev</button>
-          <div ngbDropdown class="d-inline-block">
-            <button class="btn btn-outline-primary" ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
-            <div ngbDropdownMenu>
-              <button ngbDropdownItem *ngFor="let date of displayMode.availableDates.items"
-                (click)="changeForecastDate(date)">{{date | date}}</button>
-            </div>
-          </div>
-          <button class="btn btn-primary" (click)="changeForecastDateByDir('prev', displayMode.availableDates, $any(displayMode.mode).date)">next</button>
-        </ng-template>
-      </li>
-      <li ngbNavItem="ForecastHorizonDisplayMode">
-        <a ngbNavLink>Horizon</a>
-        <ng-template ngbNavContent>
-          <div ngbDropdown class="d-inline-block">
-            <button class="btn btn-outline-primary" ngbDropdownToggle>{{$any(displayMode.mode).horizon}} ahead</button>
-            <div ngbDropdownMenu>
-              <button ngbDropdownItem (click)="changeForecastHorizon(1)">1 ahead</button>
-              <button ngbDropdownItem (click)="changeForecastHorizon(2)">2 ahead</button>
-              <button ngbDropdownItem (click)="changeForecastHorizon(3)">3 ahead</button>
-              <button ngbDropdownItem (click)="changeForecastHorizon(4)">4 ahead</button>
-            </div>
-          </div>
-        </ng-template>
-      </li>
-    </ul>
-    <div [ngbNavOutlet]="nav"></div>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-12">
+<div class="row form-group">
+  <label class="col-md-2 col-form-label">Confidence Interval</label>
+  <div class="col-md-10">
     <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changeConfidenceInterval($event)"
       [ngModel]="confidenceInterval$ | async">
-      <label ngbButtonLabel class="btn-primary">
+      <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="null"> None
       </label>
-      <label ngbButtonLabel class="btn-primary">
+      <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="QuantileType.Q50"> 50%
       </label>
-      <label ngbButtonLabel class="btn-primary">
+      <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="QuantileType.Q95"> 95%
       </label>
     </div>
   </div>
 </div>
+
+<ng-container *ngIf="displayMode$ | async as displayMode">
+  <div class="row form-group">
+    <label class="col-md-2 col-form-label">Show forecast by</label>
+    <div class="col-md-10">
+      <div ngbRadioGroup class="btn-group btn-group-toggle" [ngModel]="displayMode.mode.$type"
+        (ngModelChange)="changeDisplayMode($event, displayMode.availableDates.maximum)">
+        <label ngbButtonLabel class="btn-secondary">
+          <input ngbButton type="radio" value="ForecastDateDisplayMode"> Date
+        </label>
+        <label ngbButtonLabel class="btn-secondary">
+          <input ngbButton type="radio" value="ForecastHorizonDisplayMode"> Horizon
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="row form-group" *ngIf="displayMode.mode.$type === 'ForecastDateDisplayMode'">
+    <label class="col-md-2 col-form-label">Forecast date</label>
+    <div class="col-md-10">
+      <div class="btn-group">
+        <button class="btn btn-secondary"
+          (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)"><fa-icon [icon]="icons.left"></fa-icon></button>
+        <div ngbDropdown class="btn-group">
+          <button class="btn btn-secondary" ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
+          <div ngbDropdownMenu>
+            <button ngbDropdownItem *ngFor="let date of displayMode.availableDates.items"
+              (click)="changeForecastDate(date)">{{date | date}}</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary"
+          (click)="changeForecastDateByDir('prev', displayMode.availableDates, $any(displayMode.mode).date)"><fa-icon [icon]="icons.right"></fa-icon></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row form-group" *ngIf="displayMode.mode.$type === 'ForecastHorizonDisplayMode'">
+    <label class="col-md-2 col-form-label">Forecast horizon</label>
+    <div class="col-md-10">
+      <div ngbDropdown class="d-inline-block">
+        <button class="btn btn-secondary" ngbDropdownToggle>{{$any(displayMode.mode).horizon}} week
+          ahead</button>
+        <div ngbDropdownMenu>
+          <button ngbDropdownItem (click)="changeForecastHorizon(1)">1 week ahead</button>
+          <button ngbDropdownItem (click)="changeForecastHorizon(2)">2 week ahead</button>
+          <button ngbDropdownItem (click)="changeForecastHorizon(3)">3 week ahead</button>
+          <button ngbDropdownItem (click)="changeForecastHorizon(4)">4 week ahead</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-container>
+
+<!-- <div class="row" *ngIf="displayMode$ | async as displayMode">
+  <div class="col-12">
+    <ul ngbNav #nav="ngbNav" class="nav-tabs" [activeId]="displayMode.mode.$type"
+      (activeIdChange)="changeDisplayMode($event, displayMode.availableDates.maximum)">
+      <li ngbNavItem="ForecastDateDisplayMode">
+        <a ngbNavLink>Date</a>
+        <ng-template ngbNavContent>
+          <button class="btn btn-sm btn-secondary"
+            (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)">prev</button>
+          <div ngbDropdown class="d-inline-block">
+            <button class="btn btn-sm btn-outline-secondary"
+              ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
+            <div ngbDropdownMenu>
+              <button ngbDropdownItem *ngFor="let date of displayMode.availableDates.items"
+                (click)="changeForecastDate(date)">{{date | date}}</button>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-secondary"
+            (click)="changeForecastDateByDir('prev', displayMode.availableDates, $any(displayMode.mode).date)">next</button>
+        </ng-template>
+      </li>
+      <li ngbNavItem="ForecastHorizonDisplayMode">
+        <a ngbNavLink>Horizon</a>
+        <ng-template ngbNavContent>
+          <div class="d-flex">
+            <label>Location</label>
+            <div ngbDropdown class="d-inline-block">
+              <button class="btn btn-sm btn-outline-secondary" ngbDropdownToggle>{{$any(displayMode.mode).horizon}}
+                ahead</button>
+              <div ngbDropdownMenu>
+                <button ngbDropdownItem (click)="changeForecastHorizon(1)">1 ahead</button>
+                <button ngbDropdownItem (click)="changeForecastHorizon(2)">2 ahead</button>
+                <button ngbDropdownItem (click)="changeForecastHorizon(3)">3 ahead</button>
+                <button ngbDropdownItem (click)="changeForecastHorizon(4)">4 ahead</button>
+              </div>
+            </div>
+          </div>
+        </ng-template>
+      </li>
+    </ul>
+
+    <div class="col-12 border-left border-right">
+      <div class="" [ngbNavOutlet]="nav"></div>
+    </div>
+
+  </div>
+</div> -->

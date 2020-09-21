@@ -38,7 +38,7 @@ export class LookupService {
         const rows = parsed.data.map((r: any) => ({ id: r.state_code, name: r.state_name }));
         const root = _.find(rows, { id: rootIdentifier });
 
-        const rootLu = new LocationLookupItem(root);
+        const rootLu = new LocationLookupItem({ ...root, parent: null });
         rootLu.children = _.orderBy(_.without(rows, root).map(l => new LocationLookupItem({ ...l, parent: rootLu })), x => x.name);
         return rootLu;
       }));

@@ -136,7 +136,7 @@ export class ForecastPlotService implements OnDestroy {
         return userDisplayMode !== undefined ? userDisplayMode : { $type: 'ForecastDateDisplayMode', date: defaultDisplayMode.maximum }
       }));
 
-    const allSettings$ = combineLatest([this.location$, this.plotValue$]);
+    const allSettings$ = combineLatest([this.location$, this.plotValue$]).pipe(tap(() => this.clearEnabledSeriesNames()));
     const forecastSettings$ = combineLatest([allSettings$, this.seriesAdjustments$, this.confidenceInterval$, this.displayMode$])
       .pipe(map(([[location, plotValue], seriesAdjustments, confInterval, displayMode]) => ({ location, plotValue, seriesAdjustments, confInterval, displayMode } as ForecastSettings)));
 
@@ -178,6 +178,10 @@ export class ForecastPlotService implements OnDestroy {
         return { settings: { ...series.settings }, data: series.data.filter(x => enabledSeriesNames.indexOf(x.name) > -1) };
       }))
       .pipe(tap(x => console.log(`END activeSeries$`)));
+  }
+
+  private clearEnabledSeriesNames(): void {
+    this.enabledSeriesNames = null;
   }
 
   ngOnDestroy(): void {

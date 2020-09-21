@@ -16,97 +16,67 @@ import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
   styleUrls: ['./map.component.scss']
 })
 export class MapComponent implements OnInit, OnDestroy {
-
-  data$: Observable<any>;
-  selectedRoot: LocationLookupItem = null;
+  mapContext$: Observable<any>;
   LocationIds = LocationId;
 
   options = {
     layers: [
-      L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
+      L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+      })
     ],
   }
 
-  private selectedProvince$: Subject<LocationLookupItem> = new BehaviorSubject(null);
-  private _locationSubscription: Subscription;
-
   constructor(private luService: LookupService, private shapeService: GeoShapeService, private stateService: ForecastPlotService, private zone: NgZone) { }
 
-
-  private updateSelectedLocation(location: LocationLookupItem) {
-    if (!location) {
-      this.selectedRoot = null;
-      this.selectedProvince$.next(null);
-    }
-    else if (location.parent) {
-      this.selectedRoot = location.parent;
-      this.selectedProvince$.next(location);
-    } else {
-      this.selectedRoot = location;
-      this.selectedProvince$.next(null);
-    }
-  }
-
   ngOnInit(): void {
-    const loadLuAndMaps$ = forkJoin([this.luService.locations$, this.shapeService.germany$, this.shapeService.poland$, this.shapeService.all$])
+    this.mapContext$ = combineLatest([this.stateService.location$, this.luService.locations$, this.shapeService.germany$, this.shapeService.poland$, this.shapeService.all$])
+      .pipe(map(([selectedLocation, locationLu, germany, poland, all]) => {
+        const selectedRoot = selectedLocation === null ? null : (selectedLocation.parent === null ? selectedLocation : selectedLocation.parent);
+        const selectedProvince = selectedLocation === null ? null : (selectedLocation.parent === null ? null : selectedLocation)
 
-    this.data$ = combineLatest([loadLuAndMaps$, this.selectedProvince$])
-      .pipe(map(([[locationLu, germany, poland, all], selectedProvince]) => {
 
-        const gLAyer = this.createProvinceLayer(germany, locationLu.get(LocationId.Germany).children, selectedProvince);
-        const pLayer = this.createProvinceLayer(poland, locationLu.get(LocationId.Poland).children, selectedProvince);
+        const gLAyer = this.createProvinceLayer(germany, locationLu.get(LocationId.Germany), selectedProvince);
+        const pLayer = this.createProvinceLayer(poland, locationLu.get(LocationId.Poland), selectedProvince);
 
         const allLayer = L.geoJSON(
           <any>all.map(r => r.geom),
           {
             style: (feature) => ({
               color: '#ff0000',
-              weight: this.selectedRoot ? 1 : 2,
-              opacity: this.selectedRoot ? (this.selectedRoot.id !== feature.id ? 1 : 0) : 1,
-              fillOpacity: this.selectedRoot ? (this.selectedRoot.id !== feature.id ? .4 : 0) : .4
+              weight: selectedRoot ? 1 : 2,
+              opacity: selectedRoot ? (selectedRoot.id !== feature.id ? 1 : 0) : 1,
+              fillOpacity: selectedRoot ? (selectedRoot.id !== feature.id ? .4 : 0) : .4
             }),
-            // filter: (feature) => {
-            //   if (this.selectedRoot) {
-            //     return this.selectedRoot.id !== feature.id;
-            //   }
-            //   return true;
-            // },
             onEachFeature: (feature, layer) => {
               layer.on('click', (x) => {
                 const selected = _.find(locationLu.items, { id: x.target.feature.id });
-                this.zone.run(() => this.selectRoot(selected));
+                this.zone.run(() => this.stateService.userLocation = selected);
               });
             }
           });
 
-        const allLayerBounds = allLayer.getBounds();
+        const layers = {
+          [LocationId.Germany]: gLAyer,
+          [LocationId.Poland]: pLayer,
+          all: allLayer
+        };
+        const selectedLayer = selectedRoot ? layers[selectedRoot.id] : null;
+
         return {
-          maxBounds: allLayerBounds.pad(0.3),
-          items: locationLu.items,
-          selectedProvince: selectedProvince,
-          layers: {
-            [LocationId.Germany]: { instance: gLAyer, bounds: gLAyer.getBounds() },
-            [LocationId.Poland]: { instance: pLayer, bounds: pLayer.getBounds() },
-            all: { instance: allLayer, bounds: allLayerBounds }
-          }
+          maxBounds: allLayer.getBounds().pad(0.3),
+          fitBounds: selectedLayer ? selectedLayer.getBounds() : layers.all.getBounds(),
+          stateLayer: layers.all,
+          provinceLayer: selectedLayer
         }
       }));
-
-    this._locationSubscription = this.stateService.location$.subscribe(x => this.updateSelectedLocation(x));
   }
 
   ngOnDestroy(): void {
-    this._locationSubscription.unsubscribe();
   }
 
-  // ngOnChanges(changes: SimpleChanges): void {
-  //   if (changes.location) {
-  //     this.updateSelectedLocation();
-  //   }
-  // }
-
-
-  private createProvinceLayer(shapes: GeoShape[], provinceItems: LocationLookupItem[], selectedProv: LocationLookupItem) {
+  private createProvinceLayer(shapes: GeoShape[], stateItem: LocationLookupItem, selectedProv: LocationLookupItem) {
     const geojsonData = shapes.map(r => r.geom);
     return L.geoJSON(<any>geojsonData, {
       onEachFeature: (feature, layer) => {
@@ -115,25 +85,12 @@ export class MapComponent implements OnInit, OnDestroy {
         }
 
         layer.on('click', (x) => {
-          const selected = _.find(provinceItems, { id: x.target.feature.id });
-          const toSelect = selected === selectedProv ? null : selected;
-          this.zone.run(() => this.selectProvince(toSelect));
+          const selected = _.find(stateItem.children, { id: x.target.feature.id });
+          const toSelect = selected === selectedProv ? stateItem : selected;
+          this.zone.run(() => this.stateService.userLocation = toSelect);
         });
       },
       style: (f: any) => ({ color: selectedProv && f.properties.id === selectedProv.id ? 'black' : '#ff7800' })
     })
   }
-
-  selectRoot(item: LocationLookupItem) {
-    this.selectedRoot = item;
-    this.selectedProvince$.next(null);
-    this.stateService.userLocation = item;
-  }
-
-  selectProvince(item: LocationLookupItem) {
-    // this.selectedProvince = item;
-    this.selectedProvince$.next(item);
-    this.stateService.userLocation = item ? item : this.selectedRoot;
-  }
-
 }

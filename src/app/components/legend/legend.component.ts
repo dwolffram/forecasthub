@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { combineLatest, Observable } from 'rxjs';
 import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo } from 'src/app/models/series-info';
 import { TruthToPlotSource } from 'src/app/models/truth-to-plot';
+import { faChevronLeft, faChevronRight, faExclamationTriangle, faIndent, faOutdent } from '@fortawesome/free-solid-svg-icons';
 
 type LegendItem = ForecastLegendItem | DataSourceLegendItem;
 
@@ -34,6 +35,12 @@ export class LegendComponent implements OnInit {
   items$: Observable<DataSourceLegendItem[]>;
   TruthToPlotSource = TruthToPlotSource;
 
+  icons = {
+    left: faChevronLeft,
+    right: faChevronRight,
+    adjusted: faExclamationTriangle
+  }
+
   constructor(private stateService: ForecastPlotService) { }
 
   ngOnInit(): void {
@@ -49,11 +56,15 @@ export class LegendComponent implements OnInit {
 
     return _.map(dataSourceSeries, x => {
 
-      const forecasts = forecastSeries
+      const forecasts = _.chain(forecastSeries)
         .map(f => {
-          return { $type: 'ForecastLegendItem', series: f, enabled: this.isEnabledInStateService(f), adjust: adjustments.has(f.name) && adjustments.get(f.name) } as ForecastLegendItem;
+          const adjustment = adjustments.has(f.name) && adjustments.get(f.name);
+          const adjust = adjustment && adjustment !== f.targetSource ? adjustment : null;
+          return { $type: 'ForecastLegendItem', series: f, enabled: this.isEnabledInStateService(f), adjust: adjust } as ForecastLegendItem;
         })
-        .filter(f => f.adjust ? f.adjust === x.source : f.series.targetSource === x.source);
+        .filter(f => f.adjust ? f.adjust === x.source : f.series.targetSource === x.source)
+        .orderBy(f => f.series.name)
+        .value();
 
       return {
         $type: 'DataSourceLegendItem',
