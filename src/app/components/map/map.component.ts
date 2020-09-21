@@ -127,13 +127,13 @@ export class MapComponent implements OnInit, OnDestroy {
   selectRoot(item: LocationLookupItem) {
     this.selectedRoot = item;
     this.selectedProvince$.next(null);
-    this.stateService.location = item;
+    this.stateService.userLocation = item;
   }
 
   selectProvince(item: LocationLookupItem) {
     // this.selectedProvince = item;
     this.selectedProvince$.next(item);
-    this.stateService.location = item ? item : this.selectedRoot;
+    this.stateService.userLocation = item ? item : this.selectedRoot;
   }
 
 }

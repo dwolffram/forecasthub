@@ -1,7 +1,7 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
 import { TruthToPlotValue } from 'src/app/models/truth-to-plot';
 import { LookupService } from 'src/app/services/lookup.service';
-import { Observable } from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import * as _ from 'lodash';
 import { ForecastDateLookup } from 'src/app/models/lookups';
@@ -14,8 +14,7 @@ import { QuantileType } from 'src/app/models/forecast-to-plot';
   styleUrls: ['./title-settings.component.scss']
 })
 export class TitleSettingsComponent implements OnInit {
-  forecastDates$: Observable<ForecastDateLookup>;
-  forecastDate$: Observable<moment.Moment>;
+
 
   TruthToPlotValue = TruthToPlotValue;
   plotValue$: Observable<TruthToPlotValue>;
@@ -23,41 +22,67 @@ export class TitleSettingsComponent implements OnInit {
   QuantileType = QuantileType;
   confidenceInterval$: Observable<QuantileType>;
 
-  displayMode$: Observable<ForecastDisplayMode>;
+  displayMode$: Observable<{ availableDates: ForecastDateLookup; mode: ForecastDisplayMode; }>;
+
+  // forecastDates$: Observable<ForecastDateLookup>;
+  // forecastDate$: Observable<moment.Moment>;
+  // displayMode$: Observable<ForecastDisplayMode>;
+  // displayModeData$: Observable<{ mode: ForecastDisplayMode; dates: ForecastDateLookup; }>;
+
+  // private _forecastDates: ForecastDateLookup;
+
 
   constructor(private lookupService: LookupService, private stateService: ForecastPlotService) {
   }
 
   ngOnInit(): void {
-    this.forecastDates$ = this.lookupService.forecastDates$;
+    // this.forecastDates$ = this.lookupService.forecastDates$;
+
     this.plotValue$ = this.stateService.plotValue$;
-    // this.forecastDate$ = this.stateService.forecastDate$;
     this.confidenceInterval$ = this.stateService.confidenceInterval$;
-    this.displayMode$ = this.stateService.displayMode$;
+    // this.displayMode$ = this.stateService.displayMode$;
+
+    this.displayMode$ = combineLatest([
+      this.lookupService.forecastDates$,
+      this.stateService.displayMode$
+    ]).pipe(map(([dates, displayMode]) => {
+      return { availableDates: dates, mode: displayMode };
+    }));
   }
 
   onPlotValueChanged(plotValue: TruthToPlotValue) {
     this.stateService.plotValue = plotValue;
   }
 
-  changeForecastDate(forecastDate: moment.Moment) {
-    this.stateService.changeForecastDate(forecastDate);
-  }
-
-  changeForecastDateByDir(dir: 'prev' | 'next') {
-    this.stateService.changeForecastDateByDir(dir);
-  }
-
   changeConfidenceInterval(qType: QuantileType) {
     this.stateService.confidenceInterval = qType;
   }
 
-  changeDisplayMode(displayModeType: 'ForecastDateDisplayMode' | 'ForecastHorizonDisplayMode') {
-    this.stateService.changeDisplayMode(displayModeType);
+  changeForecastDate(forecastDate: moment.Moment) {
+    this.stateService.userDisplayMode = { $type: 'ForecastDateDisplayMode', date: forecastDate };
   }
 
   changeForecastHorizon(horizon: 1 | 2 | 3 | 4) {
-    this.stateService.changeForecastHorizon(horizon);
+    this.stateService.userDisplayMode = { $type: 'ForecastHorizonDisplayMode', horizon };
   }
+
+  changeForecastDateByDir(dir: 'prev' | 'next', forecastDates: ForecastDateLookup, currentDate: moment.Moment) {
+    const dateUpdate = forecastDates.getDateByDir(currentDate, dir);
+    this.changeForecastDate(dateUpdate);
+  }
+
+  changeDisplayMode(displayModeType: 'ForecastDateDisplayMode' | 'ForecastHorizonDisplayMode', maxDate: moment.Moment) {
+    if (displayModeType === 'ForecastDateDisplayMode') {
+      this.changeForecastDate(maxDate);
+    }
+    else if (displayModeType === 'ForecastHorizonDisplayMode') {
+      this.changeForecastHorizon(1);
+    }
+    else {
+      throw new Error(`Invalid displayMode type '${displayModeType}'. Unable to change display mode.`);
+    }
+  }
+
+
 
 }

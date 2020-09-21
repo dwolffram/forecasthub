@@ -1,1 +1,1 @@
-<div echarts [options]="chartOption$ | async" class="chart" (chartDataZoom)="onDataZoom($event)" (chartInit)="onChartInit($event)"></div>
+<div *ngIf="data$ | async as data" echarts appEchartsZrClick (zrClick)="zrClick($event, data.dates)" [options]="data.chartOptions" class="chart" (chartDataZoom)="onDataZoom($event)" (chartInit)="onChartInit($event)"></div>

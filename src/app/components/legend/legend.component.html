@@ -3,89 +3,33 @@
     <div class="card">
       <div class="card-header" (mouseleave)="onMouseOver(null)" (mouseover)="onMouseOver(item, items)"
         (click)="toggleEnabled(item, items)">
-        <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
-        </ng-container>
-        {{ item.series.name }}
-        <button class="btn btn-primary btn-sm" (click)="toggleAdjust(item)">{{ even ? '&gt;&gt;' : '&lt;&lt;'}} </button>
+        <div class="d-flex align-items-center">
+          <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
+          </ng-container>
+          <span class="ml-1 mr-auto font-weight-bold" [title]="item.series.name">{{ item.series.name }}</span>
+          <button class="btn btn-primary btn-sm shrink-0"  (click)="toggleAdjust(item)">{{ even ? '&gt;&gt;' : '&lt;&lt;'}}
+          </button>
+        </div>
       </div>
       <ul class="list-group list-group-flush">
         <li class="list-group-item" *ngFor="let forecast of item.forecasts" (mouseleave)="onMouseOver(null)"
           (mouseover)="onMouseOver(forecast, items)" (click)="toggleEnabled(forecast, items)">
-          <ng-container
-            *ngTemplateOutlet="icon; context: {$implicit: forecast.series.style, enabled: forecast.enabled}">
-          </ng-container>
-          {{forecast.series.name}}
-          <button class="btn btn-primary btn-sm" (click)="toggleAdjust(forecast)">{{ even ? '&gt;&gt;' : '&lt;&lt;'}} </button>
-          <!-- <label><input type="checkbox" [(ngModel)]="forecast.adjust" (click)="toggleAdjust(forecast)"> adjust</label> -->
+          <div class="d-flex align-items-center flex-nowrap">
+            <ng-container
+              *ngTemplateOutlet="icon; context: {$implicit: forecast.series.style, enabled: forecast.enabled}">
+            </ng-container>
+            <span class="ml-1 mr-auto text-truncate" [title]="forecast.series.name">{{forecast.series.name}}</span>
+            <button class="btn btn-primary btn-sm shrink-0" (click)="toggleAdjust(forecast)">{{ even ? '&gt;&gt;' : '&lt;&lt;'}}
+            </button>
+          </div>
         </li>
       </ul>
     </div>
   </div>
 </div>
 
-<!-- <ng-container *ngIf="items$ | async as items; else loading">
-  <table>
-    <tbody>
-      <ng-container *ngFor="let item of items">
-        <tr>
-          <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, items)">
-            <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
-            </ng-container>
-          </td>
-          <td colspan="3" (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)"
-            (click)="toggleEnabled(item, items)"><b>{{item.series.name}}</b></td>
-        </tr>
-
-        <ng-container *ngFor="let forecast of item.forecasts">
-          <tr
-            [ngStyle]="{'background-color': forecast.adjust && forecast.series.targetSource !== item.series.source ? 'lightgrey' : ''}">
-            <td></td>
-            <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(forecast)"
-              (click)="toggleEnabled(forecast, items)">
-              <ng-container
-                *ngTemplateOutlet="icon; context: {$implicit: forecast.series.style, enabled: forecast.enabled}">
-              </ng-container>
-            </td>
-            <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(forecast)"
-              (click)="toggleEnabled(forecast, items)">
-              <b>{{forecast.series.name}}</b>
-            </td>
-            <td><label><input type="checkbox" [(ngModel)]="forecast.adjust" (click)="toggleAdjust(forecast)">
-                adjust</label>
-            </td>
-          </tr>
-        </ng-container>
-      </ng-container>
-    </tbody>
-  </table>
-</ng-container> -->
-
-<!-- <ng-template #itemTemplate let-item let-roots="roots" let-isChild="isChild">
-  <tr style="height: 40px;"
-    [ngStyle]="{'background-color': item.adjust && item.series.targetSource !== '' ? 'lightgrey' : ''}">
-    <ng-container *ngIf="!isChild">
-      <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, roots)">
-        <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
-        </ng-container>
-      </td>
-      <td colspan="2" (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)"
-        (click)="toggleEnabled(item, roots)"><b>{{item.series.name}}</b></td>
-    </ng-container>
-    <ng-container *ngIf="isChild">
-      <td></td>
-      <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, roots)">
-        <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
-        </ng-container>
-      </td>
-      <td (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)" (click)="toggleEnabled(item, roots)">
-        <b>{{item.series.name}}</b></td>
-    </ng-container>
-    <td><label><input type="checkbox" [(ngModel)]="item.adjust" (click)="toggleAdjust(item)"> adjust</label></td>
-  </tr>
-</ng-template> -->
-
 <ng-template #icon let-style let-enabled="enabled">
-  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" style="height: 16px; width: 16px;" [ngSwitch]="style.symbol">
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="d-block legend-icon shrink-0" [ngSwitch]="style.symbol">
     <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" stroke-width="1" [attr.stroke]="style.color"
       [attr.fill]="enabled ? style.color : 'transparent'" />
 

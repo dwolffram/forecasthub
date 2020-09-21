@@ -3,7 +3,7 @@ import { Observable, BehaviorSubject, Subject, combineLatest, forkJoin, Subscrip
 import { map, tap } from 'rxjs/operators';
 import { EChartOption, ECharts } from 'echarts';
 import * as _ from 'lodash';
-import { LocationLookupItem, LocationId, LocationLookup } from 'src/app/models/lookups';
+import { LocationLookupItem, LocationId, LocationLookup, ForecastDateLookup } from 'src/app/models/lookups';
 import { keyBy, indexOf, groupBy } from 'lodash';
 import { DataService } from 'src/app/services/data.service';
 import { TruthToPlot, TruthToPlotValue, DataSource, TruthToPlotSource } from 'src/app/models/truth-to-plot';
@@ -26,10 +26,11 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
   private _chart: any;
   private _highlightSubscription: Subscription;
+  private _currentSettings: ForecastSettings;
 
-  chartOption$: Observable<EChartOption<EChartOption.Series>>;
+  data$: Observable<{ chartOptions: EChartOption<EChartOption.Series>, dates: ForecastDateLookup }>;
 
-  constructor(private stateService: ForecastPlotService, private zone: NgZone) {
+  constructor(private stateService: ForecastPlotService, private lookupService: LookupService) {
 
   }
 
@@ -40,8 +41,9 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this._highlightSubscription = this.stateService.highlightedSeries$.subscribe(x => this._updateHighlight(x));
 
-    this.chartOption$ = combineLatest([
+    const chartOption$ = combineLatest([
       this.stateService.activeSeries$
+        .pipe(tap(x => this._currentSettings = x.settings))
         .pipe(map(x => {
           const result = this._createSeries(x.data, x.settings);
           if (x.settings?.displayMode?.$type && x.settings.displayMode.$type === 'ForecastDateDisplayMode') {
@@ -49,14 +51,33 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           }
           return result;
         })),
-      // this.stateService.forecastDate$
-      //   .pipe(map(x => this._createForecastLine(x))),
       this.stateService.dateRange$
-    ]).pipe(map(([series, dateRange]) => {
-      const r = this._createChartOption(series, dateRange);
-      console.log("created chartOptions", r, "for", series, dateRange);
-      return r;
-    }));
+    ])
+      .pipe(map(([series, dateRange]) => {
+        const r = this._createChartOption(series, dateRange);
+        console.log("created chartOptions", r, "for", series, dateRange);
+        return r;
+      }));
+
+    this.data$ = combineLatest([chartOption$, this.lookupService.forecastDates$])
+      .pipe(map(([chartOptions, dates]) => {
+        return { chartOptions, dates }
+      }));
+  }
+
+  zrClick(event: any, dates: ForecastDateLookup) {
+    if (this._currentSettings.displayMode.$type === 'ForecastDateDisplayMode') {
+      const model = event.chart.getModel();
+      const component = model.getComponent('axisPointer');
+      if (component) {
+        const axesInfo: any = _.head(_.values(component.coordSysAxesInfo.axesInfo));
+        if (axesInfo?.axisPointerModel?.option) {
+          const axisDate = moment(axesInfo.axisPointerModel.option.value);
+          const closestDate = dates.getClosest(axisDate);
+          this.stateService.userDisplayMode = { $type: 'ForecastDateDisplayMode', date: closestDate };
+        }
+      }
+    }
   }
 
   onDataZoom(event) {
@@ -68,27 +89,9 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     }
   }
 
-  onChartClick(event) {
-    console.log("CLICK", event);
-  }
 
   onChartInit(event: ECharts) {
     this._chart = event;
-
-    const zr = this._chart.getZr();
-    zr.on('click', x => {
-      const model = this._chart.getModel();
-      const component = model.getComponent('axisPointer');
-      if (component) {
-        const axesInfo: any = _.head(_.values(component.coordSysAxesInfo.axesInfo));
-        if (axesInfo?.axisPointerModel?.option) {
-          this.zone.run(() => {
-            this.stateService.changeForecastDateToClosest(moment(axesInfo.axisPointerModel.option.value))
-          });
-        }
-      }
-    });
-
   }
 
   private _resizeChart() {
@@ -175,9 +178,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
         const line: any = {
           type: 'line',
           name: x.name,
-          id:  `${settings?.location?.id || ''} - ${x.name}`,
+          id: `${settings?.location?.id || ''} - ${x.name}`,
           data: (x.data as SeriesInfoDataItem[]).map(d => ([d.x.toDate(), d.y, d.dataPoint])),
-          // animation: x.$type === 'ForecastDateSeriesInfo',
           animationDuration: 500,
           color: x.style.color,
           symbol: x.style.symbol

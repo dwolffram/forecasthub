@@ -14,6 +14,7 @@ import { NgxEchartsModule } from 'ngx-echarts';
 import { TitleSettingsComponent } from './components/title-settings/title-settings.component';
 import { FormsModule } from '@angular/forms';
 import { LegendComponent } from './components/legend/legend.component';
+import { EchartsZrClickDirective } from './directives/echarts-zr-click.directive';
 
 @NgModule({
   declarations: [
@@ -24,6 +25,7 @@ import { LegendComponent } from './components/legend/legend.component';
     ForecastPlotComponent,
     TitleSettingsComponent,
     LegendComponent,
+    EchartsZrClickDirective,
   ],
   imports: [
     BrowserModule,

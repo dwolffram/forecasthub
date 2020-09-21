@@ -53,8 +53,7 @@ export class LegendComponent implements OnInit {
         .map(f => {
           return { $type: 'ForecastLegendItem', series: f, enabled: this.isEnabledInStateService(f), adjust: adjustments.has(f.name) && adjustments.get(f.name) } as ForecastLegendItem;
         })
-        .filter(f => (f.adjust && f.series.targetSource !== x.source) || (!f.adjust && f.series.targetSource === x.source));
-        ;
+        .filter(f => f.adjust ? f.adjust === x.source : f.series.targetSource === x.source);
 
       return {
         $type: 'DataSourceLegendItem',
@@ -95,8 +94,8 @@ export class LegendComponent implements OnInit {
       const fcSeries = item.forecasts.map(x => [x.series, adjustValue] as [ForecastSeriesInfo, TruthToPlotSource])
       this.stateService.setSeriesAdjustment(fcSeries)
     } else {
-    const adjust = item.adjust ? null : this.getOppositeSource(item.series.targetSource);
-    this.stateService.setSeriesAdjustment([[item.series, adjust]]);
+      const adjust = item.adjust ? null : this.getOppositeSource(item.series.targetSource);
+      this.stateService.setSeriesAdjustment([[item.series, adjust]]);
     }
 
     const newHighlight = this.stateService.highlightedSeries.filter(x => x !== item.series);

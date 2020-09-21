@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { BehaviorSubject, Subscription, forkJoin, combineLatest, Observable, pipe, MonoTypeOperatorFunction } from 'rxjs';
+import { BehaviorSubject, Subscription, forkJoin, combineLatest, Observable, pipe, MonoTypeOperatorFunction, iif } from 'rxjs';
 import { LocationLookupItem, ForecastDateLookup, LocationLookup } from '../models/lookups';
 import { TruthToPlotValue, TruthToPlotSource, DataSource } from '../models/truth-to-plot';
 import { LookupService } from './lookup.service';
@@ -43,38 +43,49 @@ export type ForecastDisplayMode = ForecastHorizonDisplayMode | ForecastDateDispl
 export class ForecastPlotService implements OnDestroy {
 
 
-  private readonly _location = new BehaviorSubject<LocationLookupItem>(null);
+  // private readonly _location = new BehaviorSubject<LocationLookupItem>(null);
   private readonly _plotValue = new BehaviorSubject<TruthToPlotValue>(TruthToPlotValue.CumulatedCases);
   private readonly _highlightedSeries = new BehaviorSubject<SeriesInfo[]>(null);
   private readonly _enabledSeriesNames = new BehaviorSubject<string[]>(null);
-  private readonly _dateRange = new BehaviorSubject<[moment.Moment, moment.Moment]>(null);
+  // private readonly _dateRange = new BehaviorSubject<[moment.Moment, moment.Moment]>(null);
   private readonly _seriesAdjustments = new BehaviorSubject<Map<string, TruthToPlotSource>>(new Map<string, TruthToPlotSource>());
   private readonly _confidenceInterval = new BehaviorSubject<QuantileType>(null);
-  private readonly _displayMode = new BehaviorSubject<ForecastDisplayMode>(null);
+  // private readonly _displayMode = new BehaviorSubject<ForecastDisplayMode>(null);
 
-  private _initSubscription: Subscription;
-  private _lookups: { forecastDates: ForecastDateLookup, locations: LocationLookup };
+  // private _initSubscription: Subscription;
+  // private _lookups: { forecastDates: ForecastDateLookup, locations: LocationLookup };
 
   private _forecastSeriesColors = ['#543005', '#003c30', '#8c510a', '#01665e', '#bf812d', '#35978f', '#dfc27d', '#80cdc1', '#f6e8c3', '#c7eae5', '#f5f5f5',];
   private _dataSourceSeriesColors = new Map<TruthToPlotSource, string>([[TruthToPlotSource.ECDC, 'red'], [TruthToPlotSource.JHU, 'blue']]);
 
-  readonly location$ = this._location.asObservable();
+  readonly location$: Observable<LocationLookupItem>;// = this._location.asObservable();
+
   readonly plotValue$ = this._plotValue.asObservable();
   readonly highlightedSeries$ = this._highlightedSeries.asObservable();
   readonly series$: Observable<{ data: SeriesInfo[], settings: ForecastSettings }>;
   readonly activeSeries$: Observable<{ data: SeriesInfo[], settings: ForecastSettings }>;
   readonly enabledSeriesNames$ = this._enabledSeriesNames.asObservable();
-  readonly dateRange$ = this._dateRange.asObservable();
+  readonly dateRange$: Observable<[moment.Moment, moment.Moment]>;// = this._dateRange.asObservable();
   readonly seriesAdjustments$ = this._seriesAdjustments.asObservable();
   readonly confidenceInterval$ = this._confidenceInterval.asObservable();
-  readonly displayMode$ = this._displayMode.asObservable();
+  readonly displayMode$: Observable<ForecastDisplayMode>; // = this._displayMode.asObservable();
 
-  get location(): LocationLookupItem {
-    return this._location.getValue();
+  private readonly _userLocation = new BehaviorSubject<LocationLookupItem>(undefined);
+  readonly userLocation$ = this._userLocation.asObservable();
+  get userLocation(): LocationLookupItem {
+    return this._userLocation.getValue();
+  }
+  set userLocation(value: LocationLookupItem) {
+    this._userLocation.next(value);
   }
 
-  set location(value: LocationLookupItem) {
-    this._location.next(value);
+  private readonly _userDisplayMode = new BehaviorSubject<ForecastDisplayMode>(undefined);
+  readonly userDisplayMode$ = this._userDisplayMode.asObservable();
+  get userDisplayMode(): ForecastDisplayMode {
+    return this._userDisplayMode.getValue();
+  }
+  set userDisplayMode(value: ForecastDisplayMode) {
+    this._userDisplayMode.next(value);
   }
 
   get enabledSeriesNames(): string[] {
@@ -112,24 +123,18 @@ export class ForecastPlotService implements OnDestroy {
     this._confidenceInterval.next(value);
   }
 
-  public get displayMode(): ForecastDisplayMode {
-    return this._displayMode.getValue();
-  }
-
   constructor(private lookupService: LookupService, private dataService: DataService) {
-    this._initSubscription = forkJoin([this.lookupService.forecastDates$, this.lookupService.locations$])
-      .subscribe(([dates, locations]) => {
-        // TODO: ohne subscription!
-        this._lookups = { forecastDates: dates, locations };
+    this.dateRange$ = this.lookupService.forecastDates$.pipe(map(dates => [moment(dates.minimum).add(-3, 'w').endOf('day'), moment(dates.maximum).add(6, 'w').endOf('day')]))
 
-        if (this.location === null) {
-          this.location = locations.get('GM');
-        }
-        if (this.displayMode === null) {
-          this._displayMode.next({ $type: 'ForecastDateDisplayMode', date: dates.maximum });
-        }
-        this._dateRange.next([moment(dates.minimum).add(-3, 'w').endOf('day'), moment(dates.maximum).add(6, 'w').endOf('day')]);
-      });
+    this.location$ = combineLatest([this.userLocation$, this.lookupService.locations$])
+      .pipe(map(([userLocation, defaultLocation]) => {
+        return userLocation !== undefined ? userLocation : defaultLocation.get('GM');
+      }));
+
+    this.displayMode$ = combineLatest([this.userDisplayMode$, this.lookupService.forecastDates$])
+      .pipe(map(([userDisplayMode, defaultDisplayMode]) => {
+        return userDisplayMode !== undefined ? userDisplayMode : { $type: 'ForecastDateDisplayMode', date: defaultDisplayMode.maximum }
+      }));
 
     const allSettings$ = combineLatest([this.location$, this.plotValue$]);
     const forecastSettings$ = combineLatest([allSettings$, this.seriesAdjustments$, this.confidenceInterval$, this.displayMode$])
@@ -152,7 +157,6 @@ export class ForecastPlotService implements OnDestroy {
       .pipe(tap(x => console.log(`END dataSources$}`)));
 
     const forecasts$ = combineLatest([this.dataService.forecasts$, forecastSettings$])
-      // .pipe(tap(([data, dataSources, forecastDate]) => console.log(`START forecasts$ -> ${JSON.stringify(dataSources.settings.plotValue)}`)))
       .pipe(map(([data, settings]) => ({
         settings: settings,
         data: this.createForecastSeries(data, settings)
@@ -177,65 +181,6 @@ export class ForecastPlotService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this._initSubscription.unsubscribe();
-  }
-
-  private ensureDateDisplayMode(errorMsg: string): ForecastDateDisplayMode {
-    if (this.displayMode === null) throw new Error(`${errorMsg}. No displayMode active.`);
-    if (this.displayMode.$type !== 'ForecastDateDisplayMode') throw new Error(`Unable to change 'ForecastDateByDir'. Wrong displayMode active.`);
-
-    return this.displayMode as ForecastDateDisplayMode;
-  }
-
-  private ensureHorizonDisplayMode(errorMsg: string): ForecastHorizonDisplayMode {
-    if (this.displayMode === null) throw new Error(`${errorMsg}. No displayMode active.`);
-    if (this.displayMode.$type !== 'ForecastHorizonDisplayMode') throw new Error(`${errorMsg}. Wrong displayMode active.`);
-
-    return this.displayMode as ForecastHorizonDisplayMode;
-  }
-
-  changeForecastHorizon(horizon: 1 | 2 | 3 | 4) {
-    const mode = this.ensureHorizonDisplayMode(`Unable to change 'ForecastHorizon'`);
-    this._displayMode.next({ ...mode, horizon: horizon });
-  }
-
-  changeForecastDate(date: moment.Moment) {
-    const mode = this.ensureDateDisplayMode(`Unable to change 'ForecastDate'`);
-    this._displayMode.next({ ...mode, date: date });
-  }
-
-  changeForecastDateToClosest(date: moment.Moment) {
-    const mode = this.ensureDateDisplayMode(`Unable to change 'ForecastDateToClosest'`);
-    const closestDate = _.minBy(_.map(this._lookups.forecastDates.items, x => ({ date: x, diff: Math.abs(x.diff(date)) })), x => x.diff).date;
-    console.log(`${date.format('DD.MM.YYYY')} closest date ${closestDate.format('DD.MM.YYYY')}`)
-    this._displayMode.next({ ...mode, date: closestDate });
-  }
-
-  changeForecastDateByDir(dir: 'next' | 'prev') {
-    if (!this._lookups.forecastDates) throw new Error(`Unable to change 'ForecastDateByDir'. No forecastDates found.`);
-    const mode = this.ensureDateDisplayMode(`Unable to change 'ForecastDateByDir'`);
-
-    let dateUpdate = this._lookups.forecastDates.maximum;
-    const index = this._lookups.forecastDates.getIndex(mode.date);
-    if (index >= 0) {
-      const newIndex = dir === 'next'
-        ? (index + 1) % this._lookups.forecastDates.items.length
-        : (index - 1 < 0 ? this._lookups.forecastDates.items.length - 1 : index - 1);
-      dateUpdate = this._lookups.forecastDates.items[newIndex];
-    }
-    this._displayMode.next({ ...mode, date: dateUpdate });
-  }
-
-  changeDisplayMode(displayModeType: string) {
-    if (displayModeType === 'ForecastDateDisplayMode') {
-      this._displayMode.next({ $type: 'ForecastDateDisplayMode', date: this._lookups.forecastDates.maximum });
-    }
-    else if (displayModeType === 'ForecastHorizonDisplayMode') {
-      this._displayMode.next({ $type: 'ForecastHorizonDisplayMode', horizon: 1 });
-    }
-    else {
-      throw new Error(`Invalid displayMode type ''. Unable to change display mode.`)
-    }
   }
 
   setSeriesAdjustment(adjustments: [ForecastSeriesInfo, TruthToPlotSource][]) {

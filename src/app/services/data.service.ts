@@ -9,7 +9,6 @@ import { TruthToPlot, TruthToPlotSource, TruthToPlotValue, DataSource } from '..
 import { ForecastToPlot, ForecastToPlotType, ForecastToPlotTarget, QuantileType, QuantilePointType } from '../models/forecast-to-plot';
 import { ForecastToPlotDto } from '../models/forecast-to-plot.dto';
 import * as _ from 'lodash';
-import { cacheTest } from './service-helper';
 
 
 
@@ -58,10 +57,9 @@ export class DataService {
 
   private _loadDataSource(url: string, name: TruthToPlotSource): Observable<DataSource> {
     return this._loadCsvData(url, ((row: TruthToPlotDto, i) => this.parseTruthDto({ ...row, source: name }, i)))
-      .pipe(map(x => ({ name: name, data: _.orderBy(x, d => d.date) })));
+      .pipe(map(x => ({ name: name, data: _.orderBy(x, d => d.date) })))
+      .pipe(shareReplay(1));
   }
-
-
 
   private parseTruthDto(input: TruthToPlotDto, index: number): TruthToPlot {
     return {
@@ -92,32 +90,6 @@ export class DataService {
       }
     }
 
-    // const parseTarget: (t: string, end_date: moment.Moment, index: number) => ForecastToPlotTarget = (t, end_date, index) => {
-    //   const parseRegEx = /(?<timeAhead>-?\d{1,3})\s(?<timeUnit>wk|day)\sahead\s(?<valueType>cum death|cum case|inc death|inc case|)/;
-    //   const parsed = parseRegEx.exec(t);
-
-    //   if (['wk', 'day'].indexOf(parsed.groups['timeUnit']) === -1) {
-    //     throw new Error(`Unknown time_unit (expected: 'wk' | 'day') in target '${t}' at position '${index}' in '${JSON.stringify(input)}'.`);
-    //   }
-
-    //   let value_type = TruthToPlotValue.CumulatedCases;
-    //   switch (parsed.groups['valueType']) {
-    //     case 'cum death': value_type = TruthToPlotValue.CumulatedDeath; break;
-    //     case 'cum case': value_type = TruthToPlotValue.CumulatedCases; break;
-    //     case 'inc death': value_type = TruthToPlotValue.IncidenceDeath; break;
-    //     case 'inc case': value_type = TruthToPlotValue.IncidenceCases; break;
-    //     default: throw new Error(`Unknown value_type (expected: 'cum death' | 'cum case' | 'inc death' | 'inc case') in target '${t}' at position '${index}' in object '${JSON.stringify(input)}'.`);
-    //   }
-
-
-    //   return {
-    //     time_ahead: this.parseInt(parsed.groups['timeAhead']),
-    //     time_unit: <'wk' | 'day'>parsed.groups['timeUnit'],
-    //     value_type,
-    //     end_date
-    //   };
-    // }
-
     const parseTarget: (t: string, end_date: moment.Moment, index: number) => ForecastToPlotTarget = (t, end_date, index) => {
       const parseRegEx = /(-?\d{1,3})\s(wk|day)\sahead\s(cum death|cum case|inc death|inc case|)/;
       const parsed = parseRegEx.exec(t);
@@ -139,7 +111,6 @@ export class DataService {
           case 'inc case': value_type = TruthToPlotValue.IncidenceCases; break;
           default: throw new Error(`Unknown value_type (expected: 'cum death' | 'cum case' | 'inc death' | 'inc case') in target '${t}' at position '${index}' in object '${JSON.stringify(input)}'.`);
         }
-
 
         return {
           time_ahead: this.parseInt(timeAheadStr),
