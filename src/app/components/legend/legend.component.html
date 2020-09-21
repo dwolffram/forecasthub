@@ -1,15 +1,16 @@
 <div class="row row-cols-2" *ngIf="items$ | async as items">
   <div class="col" *ngFor="let item of items; let even = even;">
     <div class="card">
-      <div class="card-header" (mouseleave)="onMouseOver(null)" (mouseenter)="onMouseOver(item)"
+      <div class="card-header" (mouseleave)="onMouseOver(null)" (mouseover)="onMouseOver(item, items)"
         (click)="toggleEnabled(item, items)">
         <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
         </ng-container>
         {{ item.series.name }}
+        <button class="btn btn-primary btn-sm" (click)="toggleAdjust(item)">{{ even ? '&gt;&gt;' : '&lt;&lt;'}} </button>
       </div>
       <ul class="list-group list-group-flush">
         <li class="list-group-item" *ngFor="let forecast of item.forecasts" (mouseleave)="onMouseOver(null)"
-          (mouseenter)="onMouseOver(forecast)" (click)="toggleEnabled(forecast, items)">
+          (mouseover)="onMouseOver(forecast, items)" (click)="toggleEnabled(forecast, items)">
           <ng-container
             *ngTemplateOutlet="icon; context: {$implicit: forecast.series.style, enabled: forecast.enabled}">
           </ng-container>

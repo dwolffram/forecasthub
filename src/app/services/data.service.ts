@@ -92,30 +92,64 @@ export class DataService {
       }
     }
 
+    // const parseTarget: (t: string, end_date: moment.Moment, index: number) => ForecastToPlotTarget = (t, end_date, index) => {
+    //   const parseRegEx = /(?<timeAhead>-?\d{1,3})\s(?<timeUnit>wk|day)\sahead\s(?<valueType>cum death|cum case|inc death|inc case|)/;
+    //   const parsed = parseRegEx.exec(t);
+
+    //   if (['wk', 'day'].indexOf(parsed.groups['timeUnit']) === -1) {
+    //     throw new Error(`Unknown time_unit (expected: 'wk' | 'day') in target '${t}' at position '${index}' in '${JSON.stringify(input)}'.`);
+    //   }
+
+    //   let value_type = TruthToPlotValue.CumulatedCases;
+    //   switch (parsed.groups['valueType']) {
+    //     case 'cum death': value_type = TruthToPlotValue.CumulatedDeath; break;
+    //     case 'cum case': value_type = TruthToPlotValue.CumulatedCases; break;
+    //     case 'inc death': value_type = TruthToPlotValue.IncidenceDeath; break;
+    //     case 'inc case': value_type = TruthToPlotValue.IncidenceCases; break;
+    //     default: throw new Error(`Unknown value_type (expected: 'cum death' | 'cum case' | 'inc death' | 'inc case') in target '${t}' at position '${index}' in object '${JSON.stringify(input)}'.`);
+    //   }
+
+
+    //   return {
+    //     time_ahead: this.parseInt(parsed.groups['timeAhead']),
+    //     time_unit: <'wk' | 'day'>parsed.groups['timeUnit'],
+    //     value_type,
+    //     end_date
+    //   };
+    // }
+
     const parseTarget: (t: string, end_date: moment.Moment, index: number) => ForecastToPlotTarget = (t, end_date, index) => {
-      const parseRegEx = /(?<timeAhead>-?\d{1,3})\s(?<timeUnit>wk|day)\sahead\s(?<valueType>cum death|cum case|inc death|inc case|)/;
+      const parseRegEx = /(-?\d{1,3})\s(wk|day)\sahead\s(cum death|cum case|inc death|inc case|)/;
       const parsed = parseRegEx.exec(t);
 
-      if (['wk', 'day'].indexOf(parsed.groups['timeUnit']) === -1) {
-        throw new Error(`Unknown time_unit (expected: 'wk' | 'day') in target '${t}' at position '${index}' in '${JSON.stringify(input)}'.`);
+      if(parsed.length === 4){
+        const timeAheadStr = parsed[1];
+        const timeUnitStr = parsed[2];
+        const valueTypeStr = parsed[3];
+
+        if (['wk', 'day'].indexOf(timeUnitStr) === -1) {
+          throw new Error(`Unknown time_unit (expected: 'wk' | 'day') in target '${t}' at position '${index}' in '${JSON.stringify(input)}'.`);
+        }
+
+        let value_type = TruthToPlotValue.CumulatedCases;
+        switch (valueTypeStr) {
+          case 'cum death': value_type = TruthToPlotValue.CumulatedDeath; break;
+          case 'cum case': value_type = TruthToPlotValue.CumulatedCases; break;
+          case 'inc death': value_type = TruthToPlotValue.IncidenceDeath; break;
+          case 'inc case': value_type = TruthToPlotValue.IncidenceCases; break;
+          default: throw new Error(`Unknown value_type (expected: 'cum death' | 'cum case' | 'inc death' | 'inc case') in target '${t}' at position '${index}' in object '${JSON.stringify(input)}'.`);
+        }
+
+
+        return {
+          time_ahead: this.parseInt(timeAheadStr),
+          time_unit: <'wk' | 'day'>timeUnitStr,
+          value_type,
+          end_date
+        };
       }
 
-      let value_type = TruthToPlotValue.CumulatedCases;
-      switch (parsed.groups['valueType']) {
-        case 'cum death': value_type = TruthToPlotValue.CumulatedDeath; break;
-        case 'cum case': value_type = TruthToPlotValue.CumulatedCases; break;
-        case 'inc death': value_type = TruthToPlotValue.IncidenceDeath; break;
-        case 'inc case': value_type = TruthToPlotValue.IncidenceCases; break;
-        default: throw new Error(`Unknown value_type (expected: 'cum death' | 'cum case' | 'inc death' | 'inc case') in target '${t}' at position '${index}' in object '${JSON.stringify(input)}'.`);
-      }
-
-
-      return {
-        time_ahead: this.parseInt(parsed.groups['timeAhead']),
-        time_unit: <'wk' | 'day'>parsed.groups['timeUnit'],
-        value_type,
-        end_date
-      };
+      throw new Error(`Unable to parse target '${t}' at position '${index}' in '${JSON.stringify(input)}'.`);
     }
 
     const parseQuantile: (q: string) => { type: QuantileType, point: QuantilePointType } = (q) => {

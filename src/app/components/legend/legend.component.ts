@@ -13,7 +13,7 @@ interface ForecastLegendItem {
 
   series: ForecastSeriesInfo;
   enabled: boolean;
-  adjust: boolean;
+  adjust?: TruthToPlotSource;
 }
 
 interface DataSourceLegendItem {
@@ -21,7 +21,6 @@ interface DataSourceLegendItem {
 
   series: DataSourceSeriesInfo;
   enabled: boolean;
-  adjust?: boolean;
 
   forecasts: ForecastLegendItem[];
 }
@@ -52,15 +51,15 @@ export class LegendComponent implements OnInit {
 
       const forecasts = forecastSeries
         .map(f => {
-          return { $type: 'ForecastLegendItem', series: f, enabled: this.isEnabledInStateService(f), adjust: adjustments.has(f.name) } as ForecastLegendItem;
+          return { $type: 'ForecastLegendItem', series: f, enabled: this.isEnabledInStateService(f), adjust: adjustments.has(f.name) && adjustments.get(f.name) } as ForecastLegendItem;
         })
         .filter(f => (f.adjust && f.series.targetSource !== x.source) || (!f.adjust && f.series.targetSource === x.source));
+        ;
 
       return {
         $type: 'DataSourceLegendItem',
         series: x,
         enabled: this.isEnabledInStateService(x),
-        adjust: forecasts.every(x => x.adjust) ? true : (forecasts.some(x => x.adjust) ? null : false),
         forecasts: forecasts
       };
     });
@@ -78,27 +77,32 @@ export class LegendComponent implements OnInit {
     this.stateService.highlightedSeries = highlight;
   }
 
-  toggleEnabled(item: LegendItem, rootItems: DataSourceLegendItem[]) {
+  toggleEnabled(item: LegendItem, dsItems: DataSourceLegendItem[]) {
     item.enabled = !item.enabled
     if (item.$type === 'DataSourceLegendItem') {
       item.forecasts.forEach(x => x.enabled = item.enabled);
     }
+    if (item.$type === 'ForecastLegendItem') {
+      // _.find(dsItems item.
+    }
 
-    this.stateService.enabledSeriesNames = this._collectEnabledSeries(rootItems).map(x => x.name);
-    this.onMouseOver(item);
+    this.stateService.enabledSeriesNames = this._collectEnabledSeries(dsItems).map(x => x.name);
   }
 
   toggleAdjust(item: LegendItem) {
-    // if(item.series.
     if (item.$type === 'DataSourceLegendItem') {
-      const adjustValue = item.adjust ? null : this.getOppositeSource(item.series.source)
+      const adjustValue = this.getOppositeSource(item.series.source)
       const fcSeries = item.forecasts.map(x => [x.series, adjustValue] as [ForecastSeriesInfo, TruthToPlotSource])
       this.stateService.setSeriesAdjustment(fcSeries)
     } else {
-      const adjust = item.adjust ? null : this.getOppositeSource(item.series.targetSource);
-      this.stateService.setSeriesAdjustment([[item.series, adjust]]);
+    const adjust = item.adjust ? null : this.getOppositeSource(item.series.targetSource);
+    this.stateService.setSeriesAdjustment([[item.series, adjust]]);
     }
 
+    const newHighlight = this.stateService.highlightedSeries.filter(x => x !== item.series);
+    if (newHighlight.length !== this.stateService.highlightedSeries.length) {
+      this.stateService.highlightedSeries = newHighlight;
+    }
   }
 
   private getOppositeSource(source: TruthToPlotSource) {

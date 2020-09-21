@@ -56,11 +56,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       const r = this._createChartOption(series, dateRange);
       console.log("created chartOptions", r, "for", series, dateRange);
       return r;
-    }))
-      .pipe(tap(() => {
-        // setTimeout(() => this._resizeChart());
-        setTimeout(() => this._updateHighlight(this.stateService.highlightedSeries));
-      }));
+    }));
   }
 
   onDataZoom(event) {
