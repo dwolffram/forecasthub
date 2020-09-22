@@ -17,6 +17,7 @@ import { LegendComponent } from './components/legend/legend.component';
 import { EchartsZrClickDirective } from './directives/echarts-zr-click.directive';
 import { LocationSelectComponent } from './components/location-select/location-select.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { LeafletResizeDirective } from './directives/leaflet-resize.directive';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     LegendComponent,
     EchartsZrClickDirective,
     LocationSelectComponent,
+    LeafletResizeDirective,
   ],
   imports: [
     BrowserModule,

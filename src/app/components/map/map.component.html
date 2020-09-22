@@ -1,6 +1,6 @@
 <ng-container *ngIf="mapContext$ | async as mapContext">
-  <div id="map" leaflet [leafletOptions]="options" [leafletFitBounds]="mapContext.fitBounds"
-    [leafletMaxBounds]="mapContext.maxBounds">
+  <div id="map" leaflet [leafletOptions]="options" [leafletFitBounds]="correctedFitBounds || mapContext.fitBounds"
+    appLeafletResize (resized)="onMapResized(mapContext.selectedLayer)">
     <div [leafletLayer]="mapContext.stateLayer"></div>
     <div [leafletLayer]="mapContext.provinceLayer"></div>
   </div>

@@ -41,7 +41,7 @@
         </ng-container>
         <span class="ml-1 mr-auto text-truncate forecast-title"
           [title]="forecast.series.name">{{forecast.series.name}}</span>
-        <fa-icon *ngIf="forecast.adjust" class="mx-1" [icon]="icons.adjusted"
+        <fa-icon *ngIf="forecast.adjust" class="mx-1 forecast-icon" [icon]="icons.adjusted"
           title="This model doesn't belong to this datasource - it's adjusted."></fa-icon>
         <button class="btn btn-secondary btn-sm shrink-0" (click)="toggleAdjust(forecast)">
           <fa-icon [icon]="even ? icons.right : icons.left"></fa-icon>
