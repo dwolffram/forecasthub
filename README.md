@@ -6,6 +6,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 - Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?)
 - Play / Pause button to animate forecastDate
+- Tooltip Chart
 - Evaluation
 
 ## Offene Fragen
@@ -14,7 +15,9 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Modelle einzeln shiften? oder doch lieber via 'globalen' schalter
 - Werden zukünftig noch weitere Datenquellen folgen, wenn ja: Soll das dynamisch bzw via config gehandelt werden oder kann jmd typescript/angular und passt das an?
 - Soll es weitere Seite geben? About, Contributors, Data, etc...
-- Gibt es eine preferierte Quelle für Geojsons/Shapes?
+- Gibt es eine preferierte Quelle für Geojsons/Shapes, sollen die von 'irgendwo' geladen werden oder mit ins repo gepackt?
+- Habt ihr ein Logo oder Farben (corporate identity stuff)?
+  - Könnte die Seite auch in einem dunkel Theme sein?
 
 ## GitHub pages
 
