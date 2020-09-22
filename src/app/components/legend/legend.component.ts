@@ -92,11 +92,8 @@ export class LegendComponent implements OnInit {
     if (item.$type === 'DataSourceLegendItem') {
       item.forecasts.forEach(x => x.enabled = item.enabled);
     }
-    if (item.$type === 'ForecastLegendItem') {
-      // _.find(dsItems item.
-    }
 
-    this.stateService.enabledSeriesNames = this._collectEnabledSeries(dsItems).map(x => x.name);
+    this.stateService.disabledSeriesNames = this._collectDisabledSeries(dsItems).map(x => x.name);
   }
 
   toggleAdjust(item: LegendItem) {
@@ -123,13 +120,13 @@ export class LegendComponent implements OnInit {
   }
 
   private isEnabledInStateService(info: SeriesInfo) {
-    if (this.stateService.enabledSeriesNames === null) return true;
-    return this.stateService.enabledSeriesNames.indexOf(info.name) > -1
+    if (this.stateService.disabledSeriesNames === null || this.stateService.disabledSeriesNames.length === 0) return true;
+    return this.stateService.disabledSeriesNames.indexOf(info.name) === -1;
   }
 
-  private _collectEnabledSeries(rootItems: DataSourceLegendItem[]): SeriesInfo[] {
+  private _collectDisabledSeries(rootItems: DataSourceLegendItem[]): SeriesInfo[] {
     try {
-      return _.filter(_.flatMap(rootItems, x => [<LegendItem>x].concat(x.forecasts)), x => x.enabled).map(x => x.series);
+      return _.filter(_.flatMap(rootItems, x => [<LegendItem>x].concat(x.forecasts)), x => !x.enabled).map(x => x.series);
     } catch (error) {
       return null;
     }

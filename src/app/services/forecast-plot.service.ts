@@ -46,7 +46,7 @@ export class ForecastPlotService implements OnDestroy {
   // private readonly _location = new BehaviorSubject<LocationLookupItem>(null);
   private readonly _plotValue = new BehaviorSubject<TruthToPlotValue>(TruthToPlotValue.CumulatedCases);
   private readonly _highlightedSeries = new BehaviorSubject<SeriesInfo[]>(null);
-  private readonly _enabledSeriesNames = new BehaviorSubject<string[]>(null);
+  private readonly _disabledSeriesNames = new BehaviorSubject<string[]>(null);
   // private readonly _dateRange = new BehaviorSubject<[moment.Moment, moment.Moment]>(null);
   private readonly _seriesAdjustments = new BehaviorSubject<Map<string, TruthToPlotSource>>(new Map<string, TruthToPlotSource>());
   private readonly _confidenceInterval = new BehaviorSubject<QuantileType>(null);
@@ -64,7 +64,7 @@ export class ForecastPlotService implements OnDestroy {
   readonly highlightedSeries$ = this._highlightedSeries.asObservable();
   readonly series$: Observable<{ data: SeriesInfo[], settings: ForecastSettings }>;
   readonly activeSeries$: Observable<{ data: SeriesInfo[], settings: ForecastSettings }>;
-  readonly enabledSeriesNames$ = this._enabledSeriesNames.asObservable();
+  readonly disabledSeriesNames$ = this._disabledSeriesNames.asObservable();
   readonly dateRange$: Observable<[moment.Moment, moment.Moment]>;// = this._dateRange.asObservable();
   readonly seriesAdjustments$ = this._seriesAdjustments.asObservable();
   readonly confidenceInterval$ = this._confidenceInterval.asObservable();
@@ -88,11 +88,11 @@ export class ForecastPlotService implements OnDestroy {
     this._userDisplayMode.next(value);
   }
 
-  get enabledSeriesNames(): string[] {
-    return this._enabledSeriesNames.getValue();
+  get disabledSeriesNames(): string[] {
+    return this._disabledSeriesNames.getValue();
   }
-  set enabledSeriesNames(value: string[]) {
-    this._enabledSeriesNames.next(value);
+  set disabledSeriesNames(value: string[]) {
+    this._disabledSeriesNames.next(value);
   }
 
   get highlightedSeries(): SeriesInfo[] {
@@ -136,7 +136,7 @@ export class ForecastPlotService implements OnDestroy {
         return userDisplayMode !== undefined ? userDisplayMode : { $type: 'ForecastDateDisplayMode', date: defaultDisplayMode.maximum }
       }));
 
-    const allSettings$ = combineLatest([this.location$, this.plotValue$]).pipe(tap(() => this.clearEnabledSeriesNames()));
+    const allSettings$ = combineLatest([this.location$, this.plotValue$]).pipe(tap(() => this.clearDisabledSeriesNames()));
     const forecastSettings$ = combineLatest([allSettings$, this.seriesAdjustments$, this.confidenceInterval$, this.displayMode$])
       .pipe(map(([[location, plotValue], seriesAdjustments, confInterval, displayMode]) => ({ location, plotValue, seriesAdjustments, confInterval, displayMode } as ForecastSettings)));
 
@@ -171,20 +171,20 @@ export class ForecastPlotService implements OnDestroy {
       }))
       .pipe(tap(x => console.log(`END forecasts$}`)));
 
-    this.activeSeries$ = combineLatest([this.series$, this.enabledSeriesNames$])
+    this.activeSeries$ = combineLatest([this.series$, this.disabledSeriesNames$])
       .pipe(tap(x => console.log(`START activeSeries$`)))
-      .pipe(map(([series, enabledSeriesNames]) => {
-        if (!enabledSeriesNames) return series;
-        return { settings: { ...series.settings }, data: series.data.filter(x => enabledSeriesNames.indexOf(x.name) > -1) };
+      .pipe(map(([series, disabledSeriesNames]) => {
+        if (!disabledSeriesNames || disabledSeriesNames.length === 0) return series;
+        return { settings: { ...series.settings }, data: series.data.filter(x => disabledSeriesNames.indexOf(x.name) === -1) };
       }))
       .pipe(tap(x => console.log(`END activeSeries$`)));
   }
 
-  private clearEnabledSeriesNames(): void {
-    this.enabledSeriesNames = null;
+  ngOnDestroy(): void {
   }
 
-  ngOnDestroy(): void {
+  clearDisabledSeriesNames() {
+    this.disabledSeriesNames = null;
   }
 
   setSeriesAdjustment(adjustments: [ForecastSeriesInfo, TruthToPlotSource][]) {

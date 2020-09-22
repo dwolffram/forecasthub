@@ -1,3 +1,5 @@
+@import "/src/variables.scss";
+
 .shrink-0 {
   flex-shrink: 0 !important;
 }
@@ -5,4 +7,36 @@
 .legend-icon {
   height: 16px;
   width: 16px;
+}
+
+.list-group-forecast-item {
+  &:hover {
+    background-color: $dark;
+
+    .forecast-title {
+      color: $white;
+    }
+  }
+
+  &.forecast-disabled {
+    .forecast-title {
+      color: $text-muted;
+    }
+  }
+}
+
+.card-header-datasource {
+  &:hover {
+    background-color: $dark;
+
+    .datasource-title {
+      color: $white;
+    }
+  }
+
+  &.datasource-disabled {
+    .datasource-title {
+      color: $text-muted;
+    }
+  }
 }
