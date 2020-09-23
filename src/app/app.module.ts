@@ -18,6 +18,7 @@ import { EchartsZrClickDirective } from './directives/echarts-zr-click.directive
 import { LocationSelectComponent } from './components/location-select/location-select.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { LeafletResizeDirective } from './directives/leaflet-resize.directive';
+import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import { LeafletResizeDirective } from './directives/leaflet-resize.directive';
     EchartsZrClickDirective,
     LocationSelectComponent,
     LeafletResizeDirective,
+    LoadingSpinnerComponent,
   ],
   imports: [
     BrowserModule,

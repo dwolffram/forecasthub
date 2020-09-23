@@ -11,7 +11,7 @@
 
 .list-group-forecast-item {
   &:hover {
-    background-color: $dark;
+    background-color: $primary;
 
     .forecast-title {
       color: $white;
@@ -31,7 +31,7 @@
 
 .card-header-datasource {
   &:hover {
-    background-color: $dark;
+    background-color: $primary;
 
     .datasource-title {
       color: $white;

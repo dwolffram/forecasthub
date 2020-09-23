@@ -7,7 +7,8 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?)
 - Play / Pause button to animate forecastDate
 - Tooltip Chart
-- Evaluation
+- Forecast Evaluation
+- Responsiveness
 
 ## Offene Fragen
 
