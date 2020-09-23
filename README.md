@@ -4,21 +4,46 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## TODOs
 
-- Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?)
-- Play / Pause button to animate forecastDate
+- Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?) 
+  - sowas wie inzidenz (durch einwohner)
+  - farben linear von gelb nach rot/dunkelrot
 - Tooltip Chart
 - Forecast Evaluation
-- Responsiveness
+- Play / Pause button to animate forecastDate
+- Responsiveness (small devices / look and feel)
 
 ## Offene Fragen
 
-- Sollen alle Modelle oder nur die mit Daten angezeigt werden (Legende)
-- Modelle einzeln shiften? oder doch lieber via 'globalen' schalter
+- Sollen alle Modelle oder nur die mit Daten angezeigt werden (Legende) 
+  - Modelle via target und location bestimmen. eingrauen, wenn keine daten da
+
 - Werden zukünftig noch weitere Datenquellen folgen, wenn ja: Soll das dynamisch bzw via config gehandelt werden oder kann jmd typescript/angular und passt das an?
+  - nur eine weitere Datenquelle DIVI
+
 - Soll es weitere Seite geben? About, Contributors, Data, etc...
+  - Ja, eine mit Tutorial
+  - Team: Wir und Ihr zusammen ein Team
+  - Data: Quellen und Methoden
+  - Link Github repo im header und im footer
 - Gibt es eine preferierte Quelle für Geojsons/Shapes, sollen die von 'irgendwo' geladen werden oder mit ins repo gepackt?
-- Habt ihr ein Logo oder Farben (corporate identity stuff)?
+  - Mit ins Repo packen
+
+- Modelle einzeln shiften? NEIN golbaler schalter, geshiftete modelle bekommen symbol der datasource
+- Habt ihr ein Logo oder Farben (corporate identity stuff)? NEIN
   - Könnte die Seite auch in einem dunkel Theme sein?
+
+## Wünsche
+
+- Drei knöpfe Original, JHU, ECDC. Modelle nicht einzeln mappen
+- Alle zahlen als Int anzeigen
+- Erklärungstexte evtl. Tour (js) wenn nicht zu aufwendig
+- Forecast-Punkte ohne fill, legende bleibt wie sie ist
+- Den Bereich vor der ForecastDate-Linie Grau hinterlegen
+- Linesymbols größer machen
+- Alle, None, Ensemable um Blacklisting der Modelle zu steuern
+
+- Location ist pflicht. NONE ist nicht erlaubt
+  - location via url steuerbar
 
 ## GitHub pages
 
