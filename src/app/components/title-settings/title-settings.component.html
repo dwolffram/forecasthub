@@ -66,17 +66,25 @@
     <label class="col-md-2 col-form-label">Forecast date</label>
     <div class="col-md-10">
       <div class="btn-group">
-        <button class="btn btn-secondary"
+        <button class="btn btn-secondary" [disabled]="isPlayingForecastDate"
           (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)"><fa-icon [icon]="icons.left"></fa-icon></button>
         <div ngbDropdown class="btn-group">
-          <button class="btn btn-secondary" ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
+          <button class="btn btn-secondary" [disabled]="isPlayingForecastDate" ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
           <div ngbDropdownMenu>
             <button ngbDropdownItem *ngFor="let date of displayMode.availableDates.items"
               (click)="changeForecastDate(date)">{{date | date}}</button>
           </div>
         </div>
-        <button class="btn btn-secondary"
+        <button class="btn btn-secondary" [disabled]="isPlayingForecastDate"
           (click)="changeForecastDateByDir('prev', displayMode.availableDates, $any(displayMode.mode).date)"><fa-icon [icon]="icons.right"></fa-icon></button>
+      </div>
+      <div class="btn-group ml-1">
+        <button class="btn btn-secondary" (click)="playPauseForecastDate(displayMode.availableDates, $any(displayMode.mode).date)">
+          <fa-icon [icon]="isPlayingForecastDate ? icons.pause : icons.play"></fa-icon>
+        </button>
+        <button class="btn btn-secondary" [disabled]="!isPlayingForecastDate" (click)="stopForecastDate()">
+          <fa-icon [icon]="icons.stop" ></fa-icon>
+        </button>
       </div>
     </div>
   </div>
