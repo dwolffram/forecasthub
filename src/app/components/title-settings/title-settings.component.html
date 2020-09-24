@@ -86,7 +86,7 @@
       <div class="btn-group">
         <button class="btn btn-secondary" [disabled]="isPlayingForecastDate"
           (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)"><fa-icon [icon]="icons.left"></fa-icon></button>
-        <div ngbDropdown class="btn-group">
+        <div ngbDropdown class="btn-group dropdown-forecast-date">
           <button class="btn btn-secondary" [disabled]="isPlayingForecastDate" ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
           <div ngbDropdownMenu>
             <button ngbDropdownItem *ngFor="let date of displayMode.availableDates.items"

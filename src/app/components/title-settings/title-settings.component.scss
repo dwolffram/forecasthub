@@ -1,6 +1,8 @@
 ::ng-deep {
-  .dropdown-menu {
-    max-height: 400px;
-    overflow-y: scroll;
+  .dropdown-forecast-date {
+    .dropdown-menu {
+      max-height: 400px;
+      overflow-y: scroll;
+    }
   }
 }

@@ -4,8 +4,8 @@
       <button class="btn btn-secondary"
         ngbDropdownToggle>{{selections.root ? selections.root.name : 'Select state' }}</button>
       <div ngbDropdownMenu>
-        <button ngbDropdownItem [ngClass]="{'font-weight-bold': selections.root === null}"
-          (click)="select(null)">none</button>
+        <!-- <button ngbDropdownItem [ngClass]="{'font-weight-bold': selections.root === null}"
+          (click)="select(null)">none</button> -->
         <button ngbDropdownItem *ngFor="let item of items$ | async" [ngClass]="{'font-weight-bold': selections.root === item}"
           (click)="select(item)">
           {{item.name}}

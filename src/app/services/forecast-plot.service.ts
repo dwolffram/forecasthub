@@ -63,7 +63,7 @@ export class ForecastPlotService implements OnDestroy {
   // private _lookups: { forecastDates: ForecastDateLookup, locations: LocationLookup };
 
   private _forecastSeriesColors = ['#543005', '#003c30', '#8c510a', '#01665e', '#bf812d', '#35978f', '#dfc27d', '#80cdc1', '#f6e8c3', '#c7eae5', '#f5f5f5',];
-  private _dataSourceSeriesColors = new Map<TruthToPlotSource, string>([[TruthToPlotSource.ECDC, 'red'], [TruthToPlotSource.JHU, 'blue']]);
+  private _dataSourceSeriesColors = new Map<TruthToPlotSource, string>([[TruthToPlotSource.ECDC, '#555'], [TruthToPlotSource.JHU, '#999']]);
 
   readonly location$: Observable<LocationLookupItem>;// = this._location.asObservable();
 
@@ -143,7 +143,7 @@ export class ForecastPlotService implements OnDestroy {
 
     this.location$ = combineLatest([this.userLocation$, this.lookupService.locations$])
       .pipe(map(([userLocation, defaultLocation]) => {
-        return userLocation !== undefined ? userLocation : defaultLocation.get('GM');
+        return userLocation ? userLocation : defaultLocation.get('GM');
       }));
 
     this.displayMode$ = combineLatest([this.userDisplayMode$, this.lookupService.forecastDates$])
@@ -199,18 +199,6 @@ export class ForecastPlotService implements OnDestroy {
   clearDisabledSeriesNames() {
     this.disabledSeriesNames = null;
   }
-
-  // setSeriesAdjustment(adjustments: [ForecastSeriesInfo, TruthToPlotSource][]) {
-  //   const map = new Map<string, TruthToPlotSource>([...this._seriesAdjustments.getValue().entries()]);
-  //   adjustments.forEach(([series, adjustTo]) => {
-  //     if (adjustTo) {
-  //       map.set(series.name, adjustTo);
-  //     } else {
-  //       map.delete(series.name);
-  //     }
-  //   });
-  //   this._seriesAdjustments.next(map);
-  // }
 
   private createForecastSeries(data: ForecastToPlot[], settings: ForecastSettings): ForecastSeriesInfo[] {
     if (!settings || !settings.location || !settings.plotValue || !settings.displayMode || !data || data.length === 0) return [];

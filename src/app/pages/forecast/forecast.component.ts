@@ -7,6 +7,7 @@ import { BehaviorSubject, combineLatest, defer, forkJoin, Observable, pipe, Subj
 import { delay, map, shareReplay, takeUntil, tap, finalize, mapTo, startWith, takeWhile } from 'rxjs/operators';
 import { ForecastDisplayMode, ForecastPlotService } from 'src/app/services/forecast-plot.service';
 import { GeoShapeService } from 'src/app/services/geo-shape.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-forecast',
@@ -15,10 +16,23 @@ import { GeoShapeService } from 'src/app/services/geo-shape.service';
 })
 export class ForecastComponent implements OnInit, OnDestroy {
   loading$: Observable<any>;
+  _locationSubscription: Subscription;
 
 
-  constructor(private stateService: ForecastPlotService, private geoService: GeoShapeService) {
-
+  constructor(private stateService: ForecastPlotService, private geoService: GeoShapeService, private activatedRoute: ActivatedRoute, private lookupService: LookupService) {
+    this._locationSubscription = combineLatest([
+      this.activatedRoute.paramMap,
+      lookupService.locations$
+    ])
+      .subscribe(([x, locationLu]) => {
+        if (x.has('locationId')) {
+          const urlLocation = x.get('locationId');
+          const location = locationLu.get(urlLocation.toUpperCase());
+          if (location) {
+            this.stateService.userLocation = location;
+          }
+        }
+      });
   }
 
   ngOnInit(): void {
@@ -32,11 +46,12 @@ export class ForecastComponent implements OnInit, OnDestroy {
       .pipe(takeWhile(x => loading))
       .pipe(
         tap(x => loading = false),
-        tap(x => console.log("### DONE"))
+        tap(x => console.log("### DONE Loading"))
       );
   }
 
   ngOnDestroy(): void {
+    this._locationSubscription.unsubscribe();
   }
 
 }

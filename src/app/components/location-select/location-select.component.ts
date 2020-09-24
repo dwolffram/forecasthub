@@ -24,7 +24,7 @@ export class LocationSelectComponent implements OnInit {
   }
 
   private createSelection(location: LocationLookupItem) {
-    if (!location) return { root: null, province: null };
+    if (!location) throw new Error('Location has to be specified.');
     if (location.parent) return { root: location.parent, province: location }
     return { root: location, province: null }
   }

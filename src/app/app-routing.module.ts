@@ -5,6 +5,7 @@ import { PageNotFoundComponent } from './pages/page-not-found/page-not-found.com
 
 const routes: Routes = [
   { path: 'forecast', component: ForecastComponent },
+  { path: 'forecast/:locationId', component: ForecastComponent },
   { path: '', redirectTo: 'forecast', pathMatch: 'full' },
   { path: '**', component: PageNotFoundComponent }
 ];

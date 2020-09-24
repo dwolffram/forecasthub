@@ -41,7 +41,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Alle, None, Ensemable um Blacklisting der Modelle zu steuern
 
 - Location ist pflicht. NONE ist nicht erlaubt
-  - location via url steuerbar
+  - ~~location via url steuerbar~~
 
 ## GitHub pages
 
