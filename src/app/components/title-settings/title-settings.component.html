@@ -10,7 +10,7 @@
 <div class="row form-group">
   <label class="col-md-2 col-form-label">Target</label>
   <div class="col-md-10">
-    <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="onPlotValueChanged($event)"
+    <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changePlotValue($event)"
       [ngModel]="plotValue$ | async">
       <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedCases"> Cumulated Cases
@@ -41,6 +41,24 @@
       </label>
       <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="QuantileType.Q95"> 95%
+      </label>
+    </div>
+  </div>
+</div>
+
+<div class="row form-group">
+  <label class="col-md-2 col-form-label">Shift models to</label>
+  <div class="col-md-10">
+    <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changeShiftToSource($event)"
+      [ngModel]="shiftToSource$ | async">
+      <label ngbButtonLabel class="btn-secondary">
+        <input ngbButton type="radio" [value]="null"> None
+      </label>
+      <label ngbButtonLabel class="btn-secondary">
+        <input ngbButton type="radio" [value]="TruthToPlotSource.ECDC"> ECDC
+      </label>
+      <label ngbButtonLabel class="btn-secondary">
+        <input ngbButton type="radio" [value]="TruthToPlotSource.JHU"> JHU
       </label>
     </div>
   </div>

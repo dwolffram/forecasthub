@@ -1,33 +1,32 @@
-<div class="row row-cols-2" *ngIf="items$ | async as items">
+<div class="row" [ngClass]="'row-cols-' + items.length" *ngIf="items$ | async as items">
   <div class="col" *ngFor="let item of items; let even = even;">
     <div class="card">
-      <div class="card-header card-header-datasource" [ngClass]="{'datasource-disabled': !item.enabled}" (mouseleave)="onMouseOver(null)"
-        (mouseover)="onMouseOver(item, items)" (click)="toggleEnabled(item, items)">
+      <div class="card-header card-header-datasource" [ngClass]="{'datasource-disabled': !item.enabled}"
+        (mouseleave)="onMouseOver(null)" (mouseover)="onMouseOver(item, items)" (click)="toggleEnabled(item, items)">
         <div class="d-flex align-items-center">
-          <ng-container *ngTemplateOutlet="icon; context: {$implicit: item.series.style, enabled: item.enabled}">
+          <!-- <code>{{item.series.style}}</code>
+          <code>{{item.enabled}}</code> -->
+          <ng-container *ngTemplateOutlet="icon; context: {$implicit: item}">
           </ng-container>
           <span class="ml-1 mr-auto font-weight-bold datasource-title"
             [title]="item.series.name">{{ item.series.name }}</span>
-          <button *ngIf="item.forecasts && item.forecasts.length > 0" class="btn btn-secondary btn-sm shrink-0"
-            (click)="toggleAdjust(item)">
-            <fa-icon [icon]="even ? icons.right : icons.left"></fa-icon>
-          </button>
         </div>
       </div>
-      <ng-container
-        *ngTemplateOutlet="item.forecasts && item.forecasts.length ? models : noModels; context: {$implicit: item, item: item, roots: items, even: even}">
+      <ng-container *ngTemplateOutlet="models; context: {$implicit: item, item: item, roots: items, even: even}">
       </ng-container>
     </div>
   </div>
 </div>
 
-<ng-template #icon let-style let-enabled="enabled">
-  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="d-block legend-icon shrink-0" [ngSwitch]="style.symbol">
-    <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" stroke-width="1" [attr.stroke]="style.color"
-      [attr.fill]="enabled ? style.color : 'transparent'" />
+<ng-template #icon let-item>
+  <!-- <code>{{item | json}}</code> -->
+  <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="d-block legend-icon shrink-0"
+    [ngSwitch]="item.series.style.symbol">
+    <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" stroke-width="1" [attr.stroke]="item.series.style.color"
+      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.series.style.color" />
 
-    <circle cx="8" cy="8" r="6" *ngSwitchDefault stroke-width="1" [attr.stroke]="style.color"
-      [attr.fill]="enabled ? style.color : 'transparent'" />
+    <circle cx="8" cy="8" r="6" *ngSwitchDefault stroke-width="1" [attr.stroke]="item.series.style.color"
+      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.series.style.color" />
   </svg>
 </ng-template>
 
@@ -37,26 +36,13 @@
       [ngClass]="{'forecast-disabled': !forecast.enabled}" (mouseleave)="onMouseOver(null)"
       (mouseover)="onMouseOver(forecast)" (click)="toggleEnabled(forecast, roots)">
       <div class="d-flex align-items-center flex-nowrap">
-        <ng-container *ngTemplateOutlet="icon; context: {$implicit: forecast.series.style, enabled: forecast.enabled}">
+        <ng-container *ngTemplateOutlet="icon; context: {$implicit: forecast}">
         </ng-container>
         <span class="ml-1 mr-auto text-truncate forecast-title"
           [title]="forecast.series.name">{{forecast.series.name}}</span>
         <fa-icon *ngIf="forecast.adjust" class="mx-1 forecast-icon" [icon]="icons.adjusted"
           title="This model doesn't belong to this datasource - it's adjusted."></fa-icon>
-        <button class="btn btn-secondary btn-sm shrink-0" (click)="toggleAdjust(forecast)">
-          <fa-icon [icon]="even ? icons.right : icons.left"></fa-icon>
-        </button>
       </div>
     </li>
   </ul>
-</ng-template>
-
-<ng-template #noModels let-item>
-  <div class="card-body">
-    <p class="card-text text-muted">
-      <i>
-        No models available for the '<b>{{item.series.name}}</b>' data source.
-      </i>
-    </p>
-  </div>
 </ng-template>

@@ -43,6 +43,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     const chartOption$ = combineLatest([
       this.stateService.activeSeries$
+        // TODO: currentSettings entfernen und via template in methode geben
         .pipe(tap(x => this._currentSettings = x.settings))
         .pipe(map(x => {
           const result = this._createSeries(x.data, x.settings);
@@ -171,7 +172,9 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
             // animation: x.$type === 'forecast',
             animationDuration: 100,
             color: x.style.color,
-            symbol: x.style.symbol
+            symbol: x.style.symbol,
+            // itemStyle: { color: 'purple', borderColor: x.style.color }
+
           };
         });
       } else {
@@ -182,8 +185,14 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           data: (x.data as SeriesInfoDataItem[]).map(d => ([d.x.toDate(), d.y, d.dataPoint])),
           animationDuration: 500,
           color: x.style.color,
-          symbol: x.style.symbol
+          symbol: x.style.symbol,
+          symbolSize: 8
         };
+
+        if (x.$type === 'ForecastDateSeriesInfo') {
+          line.itemStyle = { color: 'transparent', borderColor: x.style.color };
+          line.lineStyle = { color: x.style.color }
+        }
 
         const band = this._createConfidenceBand(x);
 
@@ -235,7 +244,37 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           data: [
             { xAxis: forecastDate.toDate() }
           ]
+        },
+        markArea: {
+          silent: true,
+          itemStyle: {
+            color: '#ccc',
+            opacity: 0.6
+          },
+          data: [[{
+            xAxis: 'min',
+            // yAxis: 'min'
+
+          }, {
+            xAxis: forecastDate.toDate(),
+            // yAxis: 'min'
+          }]]
         }
+
+        // [
+        //   // [{ x: '0%', y: '100%' }, { xAxis: forecastDate.toDate(), y: '0%' }],
+        //   [
+        //     {
+        //       name: 'Mark area in two screen points',
+        //       x: 100,
+        //       y: 100
+        //     }, {
+        //       x: '90%',
+        //       y: '10%'
+        //     }
+        //   ]
+        // ]
+
       }
       : null;
   }

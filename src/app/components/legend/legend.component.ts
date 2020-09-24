@@ -14,7 +14,6 @@ interface ForecastLegendItem {
 
   series: ForecastSeriesInfo;
   enabled: boolean;
-  adjust?: TruthToPlotSource;
 }
 
 interface DataSourceLegendItem {
@@ -44,11 +43,11 @@ export class LegendComponent implements OnInit {
   constructor(private stateService: ForecastPlotService) { }
 
   ngOnInit(): void {
-    this.items$ = combineLatest([this.stateService.series$, this.stateService.seriesAdjustments$])
-      .pipe(map(([series, adjustments]) => this._createLegendItems(series.data, adjustments)))
+    this.items$ = combineLatest([this.stateService.series$, this.stateService.shiftToSource$])
+      .pipe(map(([series, shiftToSource]) => this._createLegendItems(series.data, shiftToSource)))
   }
 
-  private _createLegendItems(series: SeriesInfo[], adjustments: Map<string, TruthToPlotSource>): DataSourceLegendItem[] {
+  private _createLegendItems(series: SeriesInfo[], shiftTo: TruthToPlotSource): DataSourceLegendItem[] {
     if (!series || series.length === 0) return [];
 
     const dataSourceSeries = series.filter(x => x.$type === 'DataSourceSeriesInfo') as DataSourceSeriesInfo[];
@@ -58,11 +57,11 @@ export class LegendComponent implements OnInit {
 
       const forecasts = _.chain(forecastSeries)
         .map(f => {
-          const adjustment = adjustments.has(f.name) && adjustments.get(f.name);
-          const adjust = adjustment && adjustment !== f.targetSource ? adjustment : null;
-          return { $type: 'ForecastLegendItem', series: f, enabled: this.isEnabledInStateService(f), adjust: adjust } as ForecastLegendItem;
+          // const adjustment = adjustments.has(f.name) && adjustments.get(f.name);
+          // const adjust = adjustment && adjustment !== f.targetSource ? adjustment : null;
+          return { $type: 'ForecastLegendItem', series: f, enabled: this.isEnabledInStateService(f) } as ForecastLegendItem;
         })
-        .filter(f => f.adjust ? f.adjust === x.source : f.series.targetSource === x.source)
+        .filter(f => shiftTo ? shiftTo === x.source : f.series.targetSource === x.source)
         .orderBy(f => f.series.name)
         .value();
 
@@ -96,21 +95,21 @@ export class LegendComponent implements OnInit {
     this.stateService.disabledSeriesNames = this._collectDisabledSeries(dsItems).map(x => x.name);
   }
 
-  toggleAdjust(item: LegendItem) {
-    if (item.$type === 'DataSourceLegendItem') {
-      const adjustValue = this.getOppositeSource(item.series.source)
-      const fcSeries = item.forecasts.map(x => [x.series, adjustValue] as [ForecastSeriesInfo, TruthToPlotSource])
-      this.stateService.setSeriesAdjustment(fcSeries)
-    } else {
-      const adjust = item.adjust ? null : this.getOppositeSource(item.series.targetSource);
-      this.stateService.setSeriesAdjustment([[item.series, adjust]]);
-    }
+  // toggleAdjust(item: LegendItem) {
+  //   if (item.$type === 'DataSourceLegendItem') {
+  //     const adjustValue = this.getOppositeSource(item.series.source)
+  //     const fcSeries = item.forecasts.map(x => [x.series, adjustValue] as [ForecastSeriesInfo, TruthToPlotSource])
+  //     this.stateService.setSeriesAdjustment(fcSeries)
+  //   } else {
+  //     const adjust = item.adjust ? null : this.getOppositeSource(item.series.targetSource);
+  //     this.stateService.setSeriesAdjustment([[item.series, adjust]]);
+  //   }
 
-    const newHighlight = this.stateService.highlightedSeries.filter(x => x !== item.series);
-    if (newHighlight.length !== this.stateService.highlightedSeries.length) {
-      this.stateService.highlightedSeries = newHighlight;
-    }
-  }
+  //   const newHighlight = this.stateService.highlightedSeries.filter(x => x !== item.series);
+  //   if (newHighlight.length !== this.stateService.highlightedSeries.length) {
+  //     this.stateService.highlightedSeries = newHighlight;
+  //   }
+  // }
 
   private getOppositeSource(source: TruthToPlotSource) {
     switch (source) {

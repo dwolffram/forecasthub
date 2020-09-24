@@ -1,5 +1,5 @@
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
-import { TruthToPlotValue } from 'src/app/models/truth-to-plot';
+import { TruthToPlotSource, TruthToPlotValue } from 'src/app/models/truth-to-plot';
 import { LookupService } from 'src/app/services/lookup.service';
 import { combineLatest, interval, noop, Observable, Subscription } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
@@ -22,6 +22,9 @@ export class TitleSettingsComponent implements OnInit {
   QuantileType = QuantileType;
   confidenceInterval$: Observable<QuantileType>;
 
+  TruthToPlotSource = TruthToPlotSource;
+  shiftToSource$: Observable<TruthToPlotSource>;
+
   displayMode$: Observable<{ availableDates: ForecastDateLookup; mode: ForecastDisplayMode; }>;
 
   currentDate = new Date();
@@ -41,6 +44,7 @@ export class TitleSettingsComponent implements OnInit {
   ngOnInit(): void {
     this.plotValue$ = this.stateService.plotValue$;
     this.confidenceInterval$ = this.stateService.confidenceInterval$;
+    this.shiftToSource$ = this.stateService.shiftToSource$;
 
     this.displayMode$ = combineLatest([
       this.lookupService.forecastDates$,
@@ -50,7 +54,7 @@ export class TitleSettingsComponent implements OnInit {
     }));
   }
 
-  onPlotValueChanged(plotValue: TruthToPlotValue) {
+  changePlotValue(plotValue: TruthToPlotValue) {
     this.stateService.plotValue = plotValue;
   }
 
@@ -67,6 +71,10 @@ export class TitleSettingsComponent implements OnInit {
       this.stopForecastDate();
     }
     this.stateService.userDisplayMode = { $type: 'ForecastHorizonDisplayMode', horizon };
+  }
+
+  changeShiftToSource(shiftTo: TruthToPlotSource) {
+    this.stateService.shiftToSource = shiftTo;
   }
 
   changeForecastDateByDir(dir: 'prev' | 'next', forecastDates: ForecastDateLookup, currentDate: moment.Moment) {
