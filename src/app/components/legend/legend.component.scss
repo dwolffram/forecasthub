@@ -10,6 +10,12 @@
 }
 
 .list-group-forecast-item {
+  cursor: pointer;
+
+  .ng-fa-icon {
+    color: #333;
+  }
+
   &:hover {
     background-color: $primary;
 
@@ -27,9 +33,30 @@
       color: $text-muted;
     }
   }
+
+  &.forecast-no-series {
+    * {
+      color: #ccc !important;
+    }
+    svg {
+      * {
+        stroke: #ccc;
+      }
+    }
+  }
 }
 
 .card-header-datasource {
+  background-color: $secondary;
+  color: $white;
+  cursor: pointer;
+
+  svg {
+    * {
+      stroke: #eee;
+    }
+  }
+
   &:hover {
     background-color: $primary;
 
@@ -40,7 +67,7 @@
 
   &.datasource-disabled {
     .datasource-title {
-      color: $text-muted;
+      color: #ccc;
     }
   }
 }

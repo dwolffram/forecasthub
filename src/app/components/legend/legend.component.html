@@ -8,12 +8,21 @@
           <code>{{item.enabled}}</code> -->
           <ng-container *ngTemplateOutlet="icon; context: {$implicit: item}">
           </ng-container>
-          <span class="ml-1 mr-auto font-weight-bold datasource-title"
-            [title]="item.series.name">{{ item.series.name }}</span>
+          <span class="ml-1 mr-auto font-weight-bold text-truncate datasource-title"
+            [title]="item.model.name">{{ item.model.name }}</span>
+          <fa-icon [icon]="item.enabled ? icons.visible : icons.invisible"></fa-icon>
         </div>
       </div>
-      <ng-container *ngTemplateOutlet="models; context: {$implicit: item, item: item, roots: items, even: even}">
+      <ng-container *ngTemplateOutlet="models; context: {$implicit: item.forecasts, roots: items }">
       </ng-container>
+      <ng-container *ngIf="item.shiftedForecasts">
+        <div class="card-footer">
+          Models orignally based on {{item.shiftedForecasts.origin}} data
+        </div>
+        <ng-container *ngTemplateOutlet="models; context: {$implicit: item.shiftedForecasts.forecasts,roots: items}">
+        </ng-container>
+      </ng-container>
+
     </div>
   </div>
 </div>
@@ -21,27 +30,29 @@
 <ng-template #icon let-item>
   <!-- <code>{{item | json}}</code> -->
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="d-block legend-icon shrink-0"
-    [ngSwitch]="item.series.style.symbol">
-    <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" stroke-width="1" [attr.stroke]="item.series.style.color"
-      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.series.style.color" />
+    [ngSwitch]="item.model.style.symbol">
+    <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" stroke-width="1" [attr.stroke]="item.model.style.color"
+      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.model.style.color" />
 
-    <circle cx="8" cy="8" r="6" *ngSwitchDefault stroke-width="1" [attr.stroke]="item.series.style.color"
-      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.series.style.color" />
+    <circle cx="8" cy="8" r="6" *ngSwitchDefault stroke-width="1" [attr.stroke]="item.model.style.color"
+      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.model.style.color" />
   </svg>
 </ng-template>
 
-<ng-template #models let-item let-roots="roots" let-even="even">
+<ng-template #models let-forecasts let-roots="roots" let-even="even">
   <ul class="list-group list-group-flush">
-    <li *ngFor="let forecast of item.forecasts" class="list-group-item list-group-forecast-item"
-      [ngClass]="{'forecast-disabled': !forecast.enabled}" (mouseleave)="onMouseOver(null)"
-      (mouseover)="onMouseOver(forecast)" (click)="toggleEnabled(forecast, roots)">
+    <li *ngFor="let forecast of forecasts" class="list-group-item list-group-forecast-item"
+      [ngClass]="{'forecast-disabled': !forecast.enabled, 'forecast-no-series': !forecast.hasSeries}"
+      (mouseleave)="onMouseOver(null)" (mouseover)="onMouseOver(forecast)" (click)="toggleEnabled(forecast, roots)">
       <div class="d-flex align-items-center flex-nowrap">
         <ng-container *ngTemplateOutlet="icon; context: {$implicit: forecast}">
         </ng-container>
         <span class="ml-1 mr-auto text-truncate forecast-title"
-          [title]="forecast.series.name">{{forecast.series.name}}</span>
-        <fa-icon *ngIf="forecast.adjust" class="mx-1 forecast-icon" [icon]="icons.adjusted"
-          title="This model doesn't belong to this datasource - it's adjusted."></fa-icon>
+          [title]="forecast.model.name">{{forecast.model.name}}</span>
+        <fa-icon [icon]="forecast.enabled ? icons.visible : icons.invisible"></fa-icon>
+        <!-- <span *ngIf="forecast.hasSeries">I HAVE SERIES DATA!!!</span> -->
+        <!-- <fa-icon *ngIf="forecast.adjust" class="mx-1 forecast-icon" [icon]="icons.adjusted"
+          title="This model doesn't belong to this datasource - it's adjusted."></fa-icon> -->
       </div>
     </li>
   </ul>

@@ -2,20 +2,32 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.1.0.
 
-## TODOs
+## Aktuell
+
+### Ideen
+
+- Datasource data filtern nach forecastDate
+
+### Fragen
+
+- In welchem Format sollen Datumswerte dargestellt werden?
+
+## 23.09.20 Meeting ForecastHub
+
+### TODOs
 
 - Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?)
   - sowas wie inzidenz (durch einwohner)
   - farben linear von gelb nach rot/dunkelrot
-- Tooltip Chart
+- ~~Tooltip Chart~~
 - Forecast Evaluation
 - ~~Play / Pause button to animate forecastDate~~
 - Responsiveness (small devices / look and feel)
 
-## Offene Fragen
+### Offene Fragen
 
-- Sollen alle Modelle oder nur die mit Daten angezeigt werden (Legende)
-  - Modelle via target und location bestimmen. eingrauen, wenn keine daten da
+- ~~Sollen alle Modelle oder nur die mit Daten angezeigt werden (Legende)~~
+  - ~~Modelle via target und location bestimmen. eingrauen, wenn keine daten da~~
 - Soll es weitere Seite geben? About, Contributors, Data, etc...
   - Ja, eine mit Tutorial
   - Team: Wir und Ihr zusammen ein Team
@@ -30,7 +42,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Habt ihr ein Logo oder Farben (corporate identity stuff)? NEIN
   - Könnte die Seite auch in einem dunkel Theme sein?
 
-## Wünsche
+### Wünsche
 
 - ~~Drei knöpfe Original, JHU, ECDC. Modelle nicht einzeln mappen~~
 - Alle zahlen als Int anzeigen
@@ -40,7 +52,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - ~~Linesymbols größer machen~~
 - Alle, None, Ensemable um Blacklisting der Modelle zu steuern
 
-- Location ist pflicht. NONE ist nicht erlaubt
+- ~~Location ist pflicht. NONE ist nicht erlaubt~~
   - ~~location via url steuerbar~~
 
 ## GitHub pages
