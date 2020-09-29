@@ -73,6 +73,8 @@ export class ForecastPlotService implements OnDestroy {
   readonly activeSeries$: Observable<{ data: SeriesInfo[], settings: ForecastSettings }>;
   readonly location$: Observable<LocationLookupItem>;
   readonly availableModels$: Observable<ModelInfo[]>;
+  readonly dataSources$: Observable<DataSource[]>;
+  readonly datasourceSettings$: Observable<[LocationLookupItem, TruthToPlotValue, TruthToPlotSource]>;
 
   get userLocation(): LocationLookupItem {
     return this._userLocation.getValue();
@@ -139,15 +141,15 @@ export class ForecastPlotService implements OnDestroy {
         return userDisplayMode !== undefined ? userDisplayMode : { $type: 'ForecastDateDisplayMode', date: defaultDisplayMode.maximum }
       }));
 
-    const allSettings$ = combineLatest([this.location$, this.plotValue$, this.shiftToSource$]).pipe(tap(() => this.clearDisabledSeriesNames()));
+    this.datasourceSettings$ = combineLatest([this.location$, this.plotValue$, this.shiftToSource$]).pipe(tap(() => this.clearDisabledSeriesNames()));
 
-    const forecastSettings$ = combineLatest([allSettings$, this.confidenceInterval$, this.displayMode$])
+    const forecastSettings$ = combineLatest([this.datasourceSettings$, this.confidenceInterval$, this.displayMode$])
       .pipe(map(([[location, plotValue, shiftToSource], confInterval, displayMode]) => ({ location, plotValue, shiftToSource, confInterval, displayMode } as ForecastSettings)));
 
-    const dataSourceData$ = forkJoin([this.dataService.ecdcData$, this.dataService.jhuData$])
+    this.dataSources$ = forkJoin([this.dataService.ecdcData$, this.dataService.jhuData$])
       .pipe(shareReplay(1));
 
-    const dataSources$ = combineLatest([dataSourceData$, allSettings$])
+    const datasourceSeries$ = combineLatest([this.dataSources$, this.datasourceSettings$])
       .pipe(map(([data, [location, plotValue, shiftTo]]) => {
         const [ecdc, jhu] = data;
 
@@ -189,7 +191,7 @@ export class ForecastPlotService implements OnDestroy {
         };
       }));
 
-    this.series$ = combineLatest([dataSources$, forecasts$])
+    this.series$ = combineLatest([datasourceSeries$, forecasts$])
       .pipe(map(([ds, fc]) => {
         return {
           data: [...ds.data, ...fc.data],
@@ -376,15 +378,9 @@ export class ForecastPlotService implements OnDestroy {
   private createTruthSeries(dataSource: DataSource, location: LocationLookupItem, plotValue: TruthToPlotValue, shiftTo: TruthToPlotSource): DataSourceSeriesInfo {
     if (!location || !plotValue) return null;
     if (shiftTo && dataSource.name !== shiftTo) return null;
-
-    const seriesData = !location ? [] : _.chain(dataSource.data)
-      .filter(x => x.idLocation === location.id)
-      .orderBy(x => x.date.toDate())
-      .map(d => ({ x: d.date, y: d[plotValue], dataPoint: null } as DataSourceSeriesInfoDataItem))
-      .value();
+    const seriesData = dataSource.select(x => x.idLocation === location.id, plotValue);
 
     if (seriesData.length === 0) return null;
-
     const color = this._dataSourceSeriesColors.get(dataSource.name);
     return { $type: 'DataSourceSeriesInfo', data: seriesData, model: { source: dataSource.name, name: dataSource.name, style: { symbol: this.getSymbol(dataSource.name), color } } };
   }

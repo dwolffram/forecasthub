@@ -1,4 +1,13 @@
 main {
-  padding: 56px 0 0;
-  min-height: calc(100vh - 56px - 1rem);
+  padding: 64px 0 0;
+  min-height: calc(100vh - 64px - 0.5rem);
+}
+
+.navbar-github {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.github-link {
+  font-size: 2rem;
 }

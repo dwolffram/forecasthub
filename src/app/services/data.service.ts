@@ -57,7 +57,7 @@ export class DataService {
 
   private _loadDataSource(url: string, name: TruthToPlotSource): Observable<DataSource> {
     return this._loadCsvData(url, ((row: TruthToPlotDto, i) => this.parseTruthDto({ ...row, source: name }, i)))
-      .pipe(map(x => ({ name: name, data: _.orderBy(x, d => d.date) })))
+      .pipe(map(x => new DataSource({ name: name, data: _.orderBy(x, d => d.date) })))
       .pipe(shareReplay(1));
   }
 

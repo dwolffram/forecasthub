@@ -18,7 +18,6 @@ export class ForecastComponent implements OnInit, OnDestroy {
   loading$: Observable<any>;
   _locationSubscription: Subscription;
 
-
   constructor(private stateService: ForecastPlotService, private geoService: GeoShapeService, private activatedRoute: ActivatedRoute, private lookupService: LookupService) {
     this._locationSubscription = combineLatest([
       this.activatedRoute.paramMap,

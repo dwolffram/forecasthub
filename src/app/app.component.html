@@ -1,15 +1,52 @@
 <header>
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <a class="navbar-brand" href="#">ForecastHub</a>
+    <a class="navbar-brand" [routerLink]="['/']" (click)="navbarCollapsed = true">ForecastHub</a>
+
+    <button class="navbar-toggler navbar-toggler-right" type="button" (click)="navbarCollapsed = !navbarCollapsed"
+      [attr.aria-expanded]="!navbarCollapsed" aria-controls="navbarContent" aria-expanded="false"
+      aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="navbar-collapse" [ngbCollapse]="navbarCollapsed" id="navbarContent">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item" [routerLinkActive]="['active']">
+          <a class="nav-link" [routerLink]="['/forecast']" (click)="navbarCollapsed = true">Forecasts</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['active']">
+          <a class="nav-link" [routerLink]="['/team']" (click)="navbarCollapsed = true">Team</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['active']">
+          <a class="nav-link" [routerLink]="['/data']" (click)="navbarCollapsed = true">Data</a>
+        </li>
+        <li class="nav-item" [routerLinkActive]="['active']">
+          <a class="nav-link" [routerLink]="['/tutorial']" (click)="navbarCollapsed = true">Tutorial</a>
+        </li>
+      </ul>
+
+      <span class="navbar-text navbar-github">
+        <a href="https://github.com/KITmetricslab/covid19-forecast-hub-de#german-and-polish-covid-19-forecast-hub"
+          target="_blank" title="Also visit us on Github" class="github-link">
+          <fa-icon [icon]="icons.github"></fa-icon>
+        </a>
+      </span>
+    </div>
   </nav>
 </header>
 
 <main role="main" class="mb-3">
-    <router-outlet></router-outlet>
+  <router-outlet></router-outlet>
 </main>
 
-<footer class="bg-light py-3">
-  <div class="container-fluid">
-    <span class="text-muted">Also visit us on <a href="#">Facebook</a></span>
+<footer class="bg-light py-1">
+  <div class="container">
+    <div class="d-flex" style="align-items: center;">
+      <span class="text-muted ml-auto mr-1">Also visit us on</span>
+      <a class="text-muted github-link"
+        href="https://github.com/KITmetricslab/covid19-forecast-hub-de#german-and-polish-covid-19-forecast-hub"
+        target="_blank" title="Also visit us on Github">
+        <fa-icon [icon]="icons.github"></fa-icon>
+      </a>
+    </div>
   </div>
 </footer>

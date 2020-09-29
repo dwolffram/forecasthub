@@ -1,5 +1,6 @@
 <ng-container *ngIf="mapContext$ | async as mapContext">
   <div id="map" leaflet [leafletOptions]="options" [leafletFitBounds]="correctedFitBounds || mapContext.fitBounds"
+  (leafletMapReady)="onMapReady($event, mapContext.provinceColorScale)"
     appLeafletResize (resized)="onMapResized(mapContext.selectedLayer)">
     <div [leafletLayer]="mapContext.stateLayer"></div>
     <div [leafletLayer]="mapContext.provinceLayer"></div>

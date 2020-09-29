@@ -1,3 +1,6 @@
+import * as _ from 'lodash';
+import { DataSourceSeriesInfoDataItem } from './series-info';
+
 export enum TruthToPlotSource {
   ECDC = 'ecdc',
   JHU = 'jhu'
@@ -28,7 +31,23 @@ export interface TruthToPlot {
   inc_case: number;
 }
 
-export interface DataSource {
+export class DataSource {
   name: TruthToPlotSource;
   data: TruthToPlot[];
+
+  constructor(init: Partial<DataSource>) {
+    Object.assign(this, init);
+  }
+
+  select(filterPredicate: (x: TruthToPlot) => boolean, plotValue: TruthToPlotValue): DataSourceSeriesInfoDataItem[] {
+    if (!plotValue) return [];
+
+    let lodashChain = _.chain(this.data);
+    if (filterPredicate) {
+      lodashChain = lodashChain.filter(x => filterPredicate(x));
+    }
+    return lodashChain.orderBy(x => x.date.toDate())
+      .map(d => ({ x: d.date, y: d[plotValue], dataPoint: d } as DataSourceSeriesInfoDataItem))
+      .value();
+  }
 }

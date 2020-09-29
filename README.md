@@ -11,14 +11,16 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 ### Fragen
 
 - In welchem Format sollen Datumswerte dargestellt werden?
+- Wonach sollen die Bundesländer/Provinzen eingefärbt werden? Aktuelle nach ECDC Datenquelle.
+  - Alternativen: Auswahl Datenquelle, Mapping zwischen Land und Datenquelle
 
 ## 23.09.20 Meeting ForecastHub
 
 ### TODOs
 
-- Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?)
+- ~~Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?)~~
   - sowas wie inzidenz (durch einwohner)
-  - farben linear von gelb nach rot/dunkelrot
+  - ~~farben linear von gelb nach rot/dunkelrot~~
 - ~~Tooltip Chart~~
 - Forecast Evaluation
 - ~~Play / Pause button to animate forecastDate~~
@@ -30,9 +32,9 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
   - ~~Modelle via target und location bestimmen. eingrauen, wenn keine daten da~~
 - Soll es weitere Seite geben? About, Contributors, Data, etc...
   - Ja, eine mit Tutorial
-  - Team: Wir und Ihr zusammen ein Team
-  - Data: Quellen und Methoden
-  - Link Github repo im header und im footer
+  - ~~Team: Wir und Ihr zusammen ein Team~~
+  - ~~Data: Quellen und Methoden~~
+  - ~~Link Github repo im header und im footer~~
 - Gibt es eine preferierte Quelle für Geojsons/Shapes, sollen die von 'irgendwo' geladen werden oder mit ins repo gepackt?
   - Mit ins Repo packen
 - ~~Modelle einzeln shiften? NEIN golbaler schalter, geshiftete modelle bekommen symbol der datasource~~

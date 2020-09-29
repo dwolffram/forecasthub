@@ -260,6 +260,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
             animationDuration: 100,
             color: x.model.style.color,
             symbol: x.model.style.symbol,
+            symbolSize: 8,
+            symbolKeepAspect: true
           };
         });
       } else {
@@ -271,7 +273,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           animationDuration: 500,
           color: x.model.style.color,
           symbol: x.model.style.symbol,
-          symbolSize: 8
+          symbolSize: 8,
+          symbolKeepAspect: true
         };
 
         if (x.$type === 'ForecastDateSeriesInfo') {

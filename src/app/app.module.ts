@@ -19,6 +19,9 @@ import { LocationSelectComponent } from './components/location-select/location-s
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { LeafletResizeDirective } from './directives/leaflet-resize.directive';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
+import { TeamComponent } from './pages/team/team.component';
+import { DataComponent } from './pages/data/data.component';
+import { TutorialComponent } from './pages/tutorial/tutorial.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +36,9 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
     LocationSelectComponent,
     LeafletResizeDirective,
     LoadingSpinnerComponent,
+    TeamComponent,
+    DataComponent,
+    TutorialComponent,
   ],
   imports: [
     BrowserModule,
