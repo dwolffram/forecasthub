@@ -23,6 +23,16 @@ import { TeamComponent } from './pages/team/team.component';
 import { DataComponent } from './pages/data/data.component';
 import { TutorialComponent } from './pages/tutorial/tutorial.component';
 import { LeafletColorLegendDirective } from './directives/leaflet-color-legend.directive';
+import { OverlayModule } from '@angular/cdk/overlay';
+import { TutorialItemDescriptionComponent } from './components/tutorial-item-description/tutorial-item-description.component';
+import { TutorialItemDescriptionDirective } from './directives/tutorial-item-description.directive';
+import { EmptyComponent } from './components/empty/empty.component';
+import { TutorialSettingsDescriptionComponent } from './components/tutorial-settings-description/tutorial-settings-description.component';
+import { DimBackgroundComponent } from './components/dim-background/dim-background.component';
+import { TutorialLegendDescriptionComponent } from './components/tutorial-legend-description/tutorial-legend-description.component';
+import { TutorialMapDescriptionComponent } from './components/tutorial-map-description/tutorial-map-description.component';
+import { TutorialPlotDescriptionComponent } from './components/tutorial-plot-description/tutorial-plot-description.component';
+import { TutorialPlotForecastDescriptionComponent } from './components/tutorial-plot-forecast-description/tutorial-plot-forecast-description.component';
 
 @NgModule({
   declarations: [
@@ -41,6 +51,15 @@ import { LeafletColorLegendDirective } from './directives/leaflet-color-legend.d
     DataComponent,
     TutorialComponent,
     LeafletColorLegendDirective,
+    TutorialItemDescriptionComponent,
+    TutorialItemDescriptionDirective,
+    EmptyComponent,
+    TutorialSettingsDescriptionComponent,
+    DimBackgroundComponent,
+    TutorialLegendDescriptionComponent,
+    TutorialMapDescriptionComponent,
+    TutorialPlotDescriptionComponent,
+    TutorialPlotForecastDescriptionComponent
   ],
   imports: [
     BrowserModule,
@@ -53,6 +72,11 @@ import { LeafletColorLegendDirective } from './directives/leaflet-color-legend.d
       echarts: () => import('echarts')
     }),
     FontAwesomeModule,
+    OverlayModule
+  ],
+  entryComponents: [
+    TutorialItemDescriptionComponent,
+    EmptyComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -5,3 +5,14 @@
 @import '~bootstrap/scss/bootstrap';
 @import '~leaflet/dist/leaflet';
 @import './app/directives/leaflet-color-legend.directive.scss';
+@import '~@angular/cdk/overlay-prebuilt';
+
+// .overlay-backdrop {
+//   background-color: orange;
+//   opacity: 0.4 !important;
+// }
+
+.overlay-panel {
+  border: 1px solid #333;
+  background-color: $white;
+}

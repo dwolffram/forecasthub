@@ -8,6 +8,7 @@ import { delay, map, shareReplay, takeUntil, tap, finalize, mapTo, startWith, ta
 import { ForecastDisplayMode, ForecastPlotService } from 'src/app/services/forecast-plot.service';
 import { GeoShapeService } from 'src/app/services/geo-shape.service';
 import { ActivatedRoute } from '@angular/router';
+import { LoadingService } from 'src/app/services/loading.service';
 
 @Component({
   selector: 'app-forecast',
@@ -18,10 +19,10 @@ export class ForecastComponent implements OnInit, OnDestroy {
   loading$: Observable<any>;
   _locationSubscription: Subscription;
 
-  constructor(private stateService: ForecastPlotService, private geoService: GeoShapeService, private activatedRoute: ActivatedRoute, private lookupService: LookupService) {
+  constructor(private stateService: ForecastPlotService, private activatedRoute: ActivatedRoute, private lookupService: LookupService, private loadingService: LoadingService) {
     this._locationSubscription = combineLatest([
       this.activatedRoute.paramMap,
-      lookupService.locations$
+      this.lookupService.locations$
     ])
       .subscribe(([x, locationLu]) => {
         if (x.has('locationId')) {
@@ -35,18 +36,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    let loading = true;
-    this.loading$ = combineLatest([
-      this.stateService.series$.pipe(tap(x => console.log("### series"))),
-      this.geoService.all$.pipe(tap(x => console.log("### all"))),
-      this.geoService.germany$.pipe(tap(x => console.log("### germany"))),
-      this.geoService.poland$.pipe(tap(x => console.log("### poland")))
-    ])
-      .pipe(takeWhile(x => loading))
-      .pipe(
-        tap(x => loading = false),
-        tap(x => console.log("### DONE Loading"))
-      );
+    this.loading$ = this.loadingService.loading$;
   }
 
   ngOnDestroy(): void {

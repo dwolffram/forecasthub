@@ -21,8 +21,10 @@ export class LeafletColorLegendDirective implements OnInit, OnChanges {
   }
 
   private createIntLegendItems(scale: ThresholdColorScale) {
-    if (!scale) return [];
-    return [1, ...scale.getThresholds().map(x => Math.ceil(x))].map((grade, index, array) => {
+    const thresholds = scale?.getThresholds();
+    if (!thresholds || thresholds.length === 0) return [];
+
+    return [1, ...thresholds.map(x => Math.ceil(x))].map((grade, index, array) => {
       let label = '';
       if (index === array.length - 1) {
         label = array[index] + '+';

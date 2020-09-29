@@ -1,0 +1,17 @@
+<div class="alert alert-info">
+  <h4 class="alert-heading">Forecasts</h4>
+  <p>
+      The plot has two options to display the forcasts.
+  </p>
+
+  <h5>Date</h5>
+  <p>
+    Date is awesome! <button class="btn btn-secondary" *ngIf="maxDate$ | async as maxDate" (click)="changeDisplayModeToDate(maxDate)">Try it!</button>
+  </p>
+
+  <h5>Horizon</h5>
+  <p>
+    Horizon is even more awesome!!! <button class="btn btn-secondary" (click)="changeDisplayModeToHorizon()">Try it!</button>
+  </p>
+
+</div>
