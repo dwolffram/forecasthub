@@ -22,6 +22,7 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
 import { TeamComponent } from './pages/team/team.component';
 import { DataComponent } from './pages/data/data.component';
 import { TutorialComponent } from './pages/tutorial/tutorial.component';
+import { LeafletColorLegendDirective } from './directives/leaflet-color-legend.directive';
 
 @NgModule({
   declarations: [
@@ -39,6 +40,7 @@ import { TutorialComponent } from './pages/tutorial/tutorial.component';
     TeamComponent,
     DataComponent,
     TutorialComponent,
+    LeafletColorLegendDirective,
   ],
   imports: [
     BrowserModule,

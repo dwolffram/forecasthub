@@ -92,12 +92,6 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     this._chart = event;
   }
 
-  private _resizeChart() {
-    if (this._chart) {
-      this._chart.resize();
-    }
-  }
-
   private _updateHighlight(highlights: ModelInfo[]) {
     if (this._chart) {
       if (highlights && highlights.length > 0) {
@@ -107,10 +101,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       } else {
         this._chart.dispatchAction({ type: 'downplay' });
       }
-
     }
   }
-
 
   private _createChartOption(series: any[], dateRange: [moment.Moment, moment.Moment], settings: ForecastSettings): EChartOption<EChartOption.Series> {
     const dzXInside: any = { type: 'inside', filterMode: 'filter', xAxisIndex: 0, minValueSpan: 1000 * 3600 * 24 * 7 * 10 };
@@ -131,44 +123,28 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       xAxis.max = dateRange[1].toDate();
     }
 
-    let ttFormatter = (params: EChartOption.Tooltip.Format | EChartOption.Tooltip.Format[]): string => {
-      if (Array.isArray(params)) {
-        const dps = _.chain(params)
-          .filter(x => Array.isArray(x.value) && x.value.length >= 4 && x.value.length <= 5)
-          .map(x => {
-            return {
-              seriesName: x.seriesName,
-              axisValue: x.axisValue,
-              marker: this.createTooltipMarker(x.value[3]),
-              item: x.value[2] as SeriesInfoDataItem,
-              seriesInfo: x.value[3] as SeriesInfo,
-              label: x.seriesName,
-              value: x.value[1],
-              interval: (<any[]>x.value).length === 5 && <Interval>x.value[4]
-            }
-          })
-          .groupBy(x => x.seriesInfo.model.source)
-          .map((x, key) => {
-            const groupHeader = _.find(x, s => s.seriesInfo.$type === 'DataSourceSeriesInfo');
-            const modelGroups = _.groupBy(_.orderBy(_.filter(x, s => s.seriesInfo.$type !== 'DataSourceSeriesInfo'), 'value', 'desc'), s => s.seriesInfo.model.name);
-
-            const itemStrs = _.map(modelGroups, m => {
-              const point = _.find(m, s => !s.interval);
-              const ci = _.find(m, s => !!s.interval);
-              return `${point.marker} ${point.label} ${point.value}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${ci.interval.lower} - ${ci.interval.upper})` : '');
-            });
-
-            const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${groupHeader.value}` : '';
-            return `${header}${header && itemStrs.length > 0 ? '<br/>' : ''}${itemStrs.join('<br/>')}`;
-          });
-
-        return dps.value().join('<br/>');
-      } else {
-        return '?';
-      }
+    return {
+      grid: {
+        top: 20,
+        left: 60,
+        right: 20,
+        bottom: 60
+      },
+      xAxis: xAxis,
+      yAxis: { type: 'value', scale: true },
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { show: true },
+        formatter: this.createTooltipFormatter(settings)
+      },
+      dataZoom: [dzXInside, dzXSlider],
+      series: series,
     };
+  }
+
+  private createTooltipFormatter(settings: ForecastSettings){
     if (settings.displayMode.$type === 'ForecastHorizonDisplayMode') {
-      ttFormatter = (params: EChartOption.Tooltip.Format | EChartOption.Tooltip.Format[]): string => {
+      return (params: EChartOption.Tooltip.Format | EChartOption.Tooltip.Format[]): string => {
         if (Array.isArray(params)) {
           const dps = _.chain(params)
             .filter(x => Array.isArray(x.value) && x.value.length >= 4 && x.value.length <= 5)
@@ -208,22 +184,41 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       };
     }
 
-    return {
-      grid: {
-        top: 20,
-        left: 60,
-        right: 20,
-        bottom: 60
-      },
-      xAxis: xAxis,
-      yAxis: { type: 'value', scale: true },
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { show: true },
-        formatter: ttFormatter
-      },
-      dataZoom: [dzXInside, dzXSlider],
-      series: series,
+    return (params: EChartOption.Tooltip.Format | EChartOption.Tooltip.Format[]): string => {
+      if (Array.isArray(params)) {
+        const dps = _.chain(params)
+          .filter(x => Array.isArray(x.value) && x.value.length >= 4 && x.value.length <= 5)
+          .map(x => {
+            return {
+              seriesName: x.seriesName,
+              axisValue: x.axisValue,
+              marker: this.createTooltipMarker(x.value[3]),
+              item: x.value[2] as SeriesInfoDataItem,
+              seriesInfo: x.value[3] as SeriesInfo,
+              label: x.seriesName,
+              value: x.value[1],
+              interval: (<any[]>x.value).length === 5 && <Interval>x.value[4]
+            }
+          })
+          .groupBy(x => x.seriesInfo.model.source)
+          .map((x, key) => {
+            const groupHeader = _.find(x, s => s.seriesInfo.$type === 'DataSourceSeriesInfo');
+            const modelGroups = _.groupBy(_.orderBy(_.filter(x, s => s.seriesInfo.$type !== 'DataSourceSeriesInfo'), 'value', 'desc'), s => s.seriesInfo.model.name);
+
+            const itemStrs = _.map(modelGroups, m => {
+              const point = _.find(m, s => !s.interval);
+              const ci = _.find(m, s => !!s.interval);
+              return `${point.marker} ${point.label} ${point.value}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${ci.interval.lower} - ${ci.interval.upper})` : '');
+            });
+
+            const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${groupHeader.value}` : '';
+            return `${header}${header && itemStrs.length > 0 ? '<br/>' : ''}${itemStrs.join('<br/>')}`;
+          });
+
+        return dps.value().join('<br/>');
+      } else {
+        return '?';
+      }
     };
   }
 

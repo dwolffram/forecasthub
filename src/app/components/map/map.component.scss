@@ -3,16 +3,4 @@
   min-height: 345px;
 }
 
-::ng-deep {
-  .legend-block {
-    //border: 1px solid black;
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-  }
 
-  .legend {
-    background-color: white;
-    padding: 10px;
-  }
-}
