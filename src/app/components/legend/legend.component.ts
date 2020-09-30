@@ -4,8 +4,9 @@ import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
 import { map } from 'rxjs/operators';
 import { combineLatest, Observable } from 'rxjs';
 import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, ModelInfo } from 'src/app/models/series-info';
-import { TruthToPlotSource } from 'src/app/models/truth-to-plot';
+import { TruthToPlotSource, TruthToPlotValue } from 'src/app/models/truth-to-plot';
 import { faChevronLeft, faChevronRight, faExclamationTriangle, faEye, faEyeSlash, faIndent, faOutdent } from '@fortawesome/free-solid-svg-icons';
+import { LocationLookupItem } from 'src/app/models/lookups';
 
 type LegendItem = ForecastLegendItem | DataSourceLegendItem;
 
@@ -33,8 +34,9 @@ interface DataSourceLegendItem {
   styleUrls: ['./legend.component.scss']
 })
 export class LegendComponent implements OnInit {
-  items$: Observable<DataSourceLegendItem[]>;
+  dataContext$: Observable<{plotValue: TruthToPlotValue, location: LocationLookupItem, ensembleModelNames: string[], allModelNames: string[], items: DataSourceLegendItem[] }>;
   TruthToPlotSource = TruthToPlotSource;
+  TruthToPlotValue = TruthToPlotValue;
 
   icons = {
     left: faChevronLeft,
@@ -47,11 +49,21 @@ export class LegendComponent implements OnInit {
   constructor(private stateService: ForecastPlotService) { }
 
   ngOnInit(): void {
-    this.items$ = combineLatest([this.stateService.series$, this.stateService.availableModels$, this.stateService.shiftToSource$])
-      .pipe(map(([series, availableModels, shiftToSource]) => this._createLegendItems(availableModels, series.data, shiftToSource)))
+    this.dataContext$ = combineLatest([this.stateService.series$, this.stateService.availableModels$, this.stateService.shiftToSource$, this.stateService.disabledSeriesNames$])
+      .pipe(map(([series, availableModels, shiftToSource, disabledSeriesNames]) => {
+        const allModelNames = availableModels.map(x => x.name);
+
+        return {
+          plotValue: series.settings.plotValue,
+          location: series.settings.location,
+          ensembleModelNames: _.without(allModelNames, ...ForecastPlotService.EnsembleModelNames),
+          allModelNames: allModelNames,
+          items: this._createLegendItems(availableModels, series.data, shiftToSource, disabledSeriesNames)
+        };
+      }));
   }
 
-  private createForecastLegendItems(forecastModels: ModelInfo[], forecastSeries: SeriesInfo[]) {
+  private createForecastLegendItems(forecastModels: ModelInfo[], forecastSeries: SeriesInfo[], disabledSeriesNames: string[]) {
     return _.chain(forecastModels)
       .orderBy(m => m.name)
       .map(m => {
@@ -61,14 +73,14 @@ export class LegendComponent implements OnInit {
         return {
           $type: 'ForecastLegendItem',
           model: m,
-          enabled: this.isEnabledInStateService(m),
+          enabled: disabledSeriesNames && disabledSeriesNames.indexOf(m.name) === -1,
           hasSeries: hasSeries
         } as ForecastLegendItem;
       })
       .value();
   }
 
-  private _createLegendItems(availableModels: ModelInfo[], series: SeriesInfo[], shiftTo: TruthToPlotSource): DataSourceLegendItem[] {
+  private _createLegendItems(availableModels: ModelInfo[], series: SeriesInfo[], shiftTo: TruthToPlotSource, disabledSeriesNames: string[]): DataSourceLegendItem[] {
     if (!series || series.length === 0) return [];
 
     const dataSourceSeries = series.filter(x => x.$type === 'DataSourceSeriesInfo') as DataSourceSeriesInfo[];
@@ -77,13 +89,14 @@ export class LegendComponent implements OnInit {
     return _.map(dataSourceSeries, x => {
 
       const ownModels = _.filter(availableModels, m => m.source === x.model.source);
-      const shiftedForecasts = shiftTo && this.createForecastLegendItems(_.without(availableModels, ...ownModels), forecastSeries);
+      const shiftedForecasts = shiftTo && this.createForecastLegendItems(_.without(availableModels, ...ownModels), forecastSeries, disabledSeriesNames);
+      const isEnabled = disabledSeriesNames && disabledSeriesNames.indexOf(x.model.name) === -1;
 
       return {
         $type: 'DataSourceLegendItem',
         model: x.model,
-        enabled: this.isEnabledInStateService(x.model),
-        forecasts: this.createForecastLegendItems(ownModels, forecastSeries),
+        enabled: isEnabled,
+        forecasts: this.createForecastLegendItems(ownModels, forecastSeries, disabledSeriesNames),
         shiftedForecasts: shiftedForecasts && shiftedForecasts.length > 0 && { forecasts: shiftedForecasts, origin: _.head(shiftedForecasts).model.source }
       };
     });
@@ -110,32 +123,16 @@ export class LegendComponent implements OnInit {
     this.stateService.disabledSeriesNames = this._collectDisabledModels(dsItems).map(x => x.name);
   }
 
-  // toggleAdjust(item: LegendItem) {
-  //   if (item.$type === 'DataSourceLegendItem') {
-  //     const adjustValue = this.getOppositeSource(item.series.source)
-  //     const fcSeries = item.forecasts.map(x => [x.series, adjustValue] as [ForecastSeriesInfo, TruthToPlotSource])
-  //     this.stateService.setSeriesAdjustment(fcSeries)
-  //   } else {
-  //     const adjust = item.adjust ? null : this.getOppositeSource(item.series.targetSource);
-  //     this.stateService.setSeriesAdjustment([[item.series, adjust]]);
-  //   }
-
-  //   const newHighlight = this.stateService.highlightedSeries.filter(x => x !== item.series);
-  //   if (newHighlight.length !== this.stateService.highlightedSeries.length) {
-  //     this.stateService.highlightedSeries = newHighlight;
-  //   }
-  // }
-
-  private getOppositeSource(source: TruthToPlotSource) {
-    switch (source) {
-      case TruthToPlotSource.ECDC: return TruthToPlotSource.JHU;
-      default: return TruthToPlotSource.ECDC;
-    }
+  changeBlacklisting(blacklist: string[]) {
+    this.stateService.disabledSeriesNames = blacklist || [];
   }
 
-  private isEnabledInStateService(info: ModelInfo) {
-    if (this.stateService.disabledSeriesNames === null || this.stateService.disabledSeriesNames.length === 0) return true;
-    return this.stateService.disabledSeriesNames.indexOf(info.name) === -1;
+  changePlotValue(plotValue: TruthToPlotValue){
+    this.stateService.plotValue = plotValue;
+  }
+
+  changeLocation(location: LocationLookupItem){
+    this.stateService.userLocation = location;
   }
 
   private _collectDisabledModels(rootItems: DataSourceLegendItem[]): ModelInfo[] {

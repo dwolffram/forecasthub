@@ -12,11 +12,11 @@ import { Control, DomUtil, MapOptions } from 'leaflet';
 import { features } from 'process';
 import { DataSourceSeriesInfo } from 'src/app/models/series-info';
 import * as d3scale from 'd3-scale';
-import { DataSource } from 'src/app/models/truth-to-plot';
+import { DataSource, TruthToPlotValue } from 'src/app/models/truth-to-plot';
 import { ThresholdColorScale } from 'src/app/models/color-scale';
+import { NumberHelper } from 'src/app/util/number-helper';
+import { settings } from 'cluster';
 
-// TODO: shapes einfärben
-// IDEA: dbl click => selectedRoot(null),
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -43,8 +43,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.mapContext$ = combineLatest([this.stateService.dataSources$, this.stateService.datasourceSettings$, this.luService.locations$, this.shapeService.germany$, this.shapeService.poland$, this.shapeService.all$])
-      .pipe(map(([dataSources, settings, locationLu, germany, poland, all]) => {
-        const [selectedLocation, plotValue] = settings;
+      .pipe(map(([dataSources, [selectedLocation, plotValue, shiftTo], locationLu, germany, poland, all]) => {
         const selectedRoot = selectedLocation.parent === null ? selectedLocation : selectedLocation.parent;
         const selectedProvince = selectedLocation.parent === null ? null : selectedLocation;
 
@@ -52,7 +51,16 @@ export class MapComponent implements OnInit, OnDestroy {
         const maxDate = _.maxBy(colorDataSource.data, x => x.date.toDate()).date;
 
         const provinceColorScaleData = colorDataSource.select(x => maxDate.isSame(x.date) && selectedRoot.children.some(c => c.id === x.idLocation), plotValue);
-        const provinceColorScaleValues = new Map<string, number>(provinceColorScaleData.map(x => [x.dataPoint.idLocation, x.y]));
+
+        const provinceColorScaleValues = new Map<string, number>(provinceColorScaleData.map(x => {
+          const population = locationLu.get(x.dataPoint.idLocation)?.population || 0;
+          let value = x.y;
+          if (plotValue === TruthToPlotValue.CumulatedCases || plotValue === TruthToPlotValue.CumulatedDeath) {
+            value = (x.y / (population > 0 ? population : Infinity)) * 100000;
+          }
+
+          return [x.dataPoint.idLocation, value];
+        }));
         const provinceColorScale = this.createColorScale(provinceColorScaleValues);
 
         const gLAyer = this.createProvinceLayer(germany, locationLu.get(LocationId.Germany), selectedProvince, provinceColorScaleValues, provinceColorScale);
@@ -139,7 +147,8 @@ export class MapComponent implements OnInit, OnDestroy {
     const getTooltipContent = (f: GeoJSON.Feature<GeoJSON.Geometry, any>) => {
       const locationItem = _.find(stateItem.children, x => x.id === f.id);
       const locationValue = dataMap.has(locationItem.id) && dataMap.get(locationItem.id);
-      return `${locationItem.name} ${locationValue || ''}`;
+
+      return `${locationItem.name} ${(locationValue && NumberHelper.formatInt(locationValue)) || ''}`;
     };
 
     const geojsonData = shapes.map(r => r.geom);

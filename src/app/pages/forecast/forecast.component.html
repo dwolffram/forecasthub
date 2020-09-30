@@ -1,18 +1,18 @@
 <div class="container-fluid" *ngIf="loading$ | async; else loading">
   <div class="row">
-    <div class="col-md-4 mb-3">
+    <div class="col-lg-5 col-xl-4 order-12 order-lg-1 mb-3">
       <app-map></app-map>
     </div>
-    <div class="col-md-8 mb-3">
+    <div class="col-lg-7 col-xl-8 order-1 order-lg-12 mb-3">
       <app-title-settings></app-title-settings>
     </div>
   </div>
 
   <div class="row">
-    <div class="col-md-4">
+    <div class="col-lg-5 col-xl-4">
       <app-legend></app-legend>
     </div>
-    <div class="col-md-8">
+    <div class="col-lg-7 col-xl-8">
       <app-forecast-plot></app-forecast-plot>
     </div>
   </div>

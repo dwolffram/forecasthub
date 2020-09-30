@@ -1,20 +1,15 @@
-import { Component, OnInit, Input, SimpleChanges, OnChanges, OnDestroy, NgZone } from '@angular/core';
-import { Observable, BehaviorSubject, Subject, combineLatest, forkJoin, Subscription } from 'rxjs';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Observable, combineLatest, Subscription } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { EChartOption, ECharts } from 'echarts';
 import * as _ from 'lodash';
-import { LocationLookupItem, LocationId, LocationLookup, ForecastDateLookup } from 'src/app/models/lookups';
-import { keyBy, indexOf, groupBy } from 'lodash';
-import { DataService } from 'src/app/services/data.service';
-import { TruthToPlot, TruthToPlotValue, DataSource, TruthToPlotSource } from 'src/app/models/truth-to-plot';
-import { ForecastToPlot, ForecastToPlotType, ForecastToPlotTarget } from 'src/app/models/forecast-to-plot';
-import { ForecastToPlotDto } from 'src/app/models/forecast-to-plot.dto';
-import { off } from 'process';
 import { LookupService } from 'src/app/services/lookup.service';
 import * as moment from 'moment';
 import { ForecastPlotService, ForecastSettings } from 'src/app/services/forecast-plot.service';
-import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, SeriesInfoDataItem, ForecastDateSeriesInfo, ModelInfo, ForecastSeriesInfoDataItem, DataSourceSeriesInfoDataItem, Interval } from 'src/app/models/series-info';
-import { settings } from 'cluster';
+import { SeriesInfo, SeriesInfoDataItem, ModelInfo, ForecastSeriesInfoDataItem, Interval } from 'src/app/models/series-info';
+import { NumberHelper } from 'src/app/util/number-helper';
+import { ForecastDateLookup } from 'src/app/models/lookups';
+
 
 @Component({
   selector: 'app-forecast-plot',
@@ -27,7 +22,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
   private _chart: any;
   private _highlightSubscription: Subscription;
 
-  data$: Observable<{ chartOptions: EChartOption<EChartOption.Series>, dates: ForecastDateLookup, settings: ForecastSettings }>;
+  data$: Observable<{ chartOptions: EChartOption<EChartOption.Series>, dates: ForecastDateLookup, settings: ForecastSettings, hasSeries: boolean }>;
+  private _resizeSubscription: Subscription;
 
   constructor(private stateService: ForecastPlotService, private lookupService: LookupService) {
 
@@ -35,31 +31,38 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._highlightSubscription.unsubscribe();
+    this._resizeSubscription.unsubscribe();
   }
 
   ngOnInit(): void {
     this._highlightSubscription = this.stateService.highlightedSeries$.subscribe(x => this._updateHighlight(x));
+    this._resizeSubscription = this.stateService.availableModels$.subscribe(x => {
+      if (this._chart) {
+        setTimeout(() => this._chart.resize());
+      }
+    });
 
     const chartOption$ = combineLatest([
       this.stateService.activeSeries$
         .pipe(map(x => {
           const result = this._createSeries(x.data, x.settings);
+          const hasSeries = result.length > 0;
           if (x.settings?.displayMode?.$type && x.settings.displayMode.$type === 'ForecastDateDisplayMode') {
             result.push(this._createForecastLine(x.settings.displayMode.date))
           }
-          return [result, x.settings] as [any[], ForecastSettings];
+          return { series: result, settings: x.settings, hasSeries };
         })),
       this.stateService.dateRange$
     ])
-      .pipe(map(([[series, settings], dateRange]) => {
-        const r = this._createChartOption(series, dateRange, settings);
-        console.log("created chartOptions", r, "for", series, dateRange);
-        return [r, settings] as [EChartOption<EChartOption.Series>, ForecastSettings];
+      .pipe(map(([activeSeries, dateRange]) => {
+        const options = this._createChartOption(activeSeries.series, dateRange, activeSeries.settings);
+        console.log("created chartOptions", options, "for", activeSeries.series, dateRange);
+        return { options, settings: activeSeries.settings, hasSeries: activeSeries.hasSeries };
       }));
 
     this.data$ = combineLatest([chartOption$, this.lookupService.forecastDates$])
-      .pipe(map(([[chartOptions, settings], dates]) => {
-        return { chartOptions, dates, settings }
+      .pipe(map(([chartOptions, dates]) => {
+        return { chartOptions: chartOptions.options, dates, settings: chartOptions.settings, hasSeries: chartOptions.hasSeries }
       }));
   }
 
@@ -142,11 +145,11 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     };
   }
 
-  private createTooltipFormatter(settings: ForecastSettings){
+  private createTooltipFormatter(settings: ForecastSettings) {
     if (settings.displayMode.$type === 'ForecastHorizonDisplayMode') {
       return (params: EChartOption.Tooltip.Format | EChartOption.Tooltip.Format[]): string => {
         if (Array.isArray(params)) {
-          const dps = _.chain(params)
+          const typedParams = _.chain(params)
             .filter(x => Array.isArray(x.value) && x.value.length >= 4 && x.value.length <= 5)
             .map(x => {
               return {
@@ -158,26 +161,28 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
                 label: x.seriesName,
                 value: x.value[1]
               }
-            })
+            });
+          const dps = typedParams
             .groupBy(x => x.seriesInfo.model.source)
             .map((x, key) => {
               const groupHeader = _.find(x, s => s.seriesInfo.$type === 'DataSourceSeriesInfo');
-              const modelGroups = _.groupBy(_.orderBy(_.filter(x, s => s.item.$type === 'ForecastSeriesInfoDataItem' && s.item.dataPoint.target.time_ahead > 0 ), ['item.dataPoint.target.time_ahead', 'value'], ['asc', 'desc']), s => s.seriesInfo.model.name);
+              const modelGroups = _.groupBy(_.orderBy(_.filter(x, s => s.item.$type === 'ForecastSeriesInfoDataItem' && s.item.dataPoint.target.time_ahead > 0), ['item.dataPoint.target.time_ahead', 'value'], ['asc', 'desc']), s => s.seriesInfo.model.name);
 
               const itemStrs = _.flatMap(modelGroups, m => {
                 return m.map(mm => {
                   const forecastItem = mm.item as ForecastSeriesInfoDataItem;
                   const point = mm;
                   const ci = forecastItem.interval && forecastItem;
-                  return `${point.marker} ${point.label} (${forecastItem.dataPoint.target.time_ahead} ${forecastItem.dataPoint.target.time_unit} ahead) ${point.value}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${ci.interval.lower} - ${ci.interval.upper})` : '');
+                  return `${point.marker} ${point.label} (${forecastItem.dataPoint.target.time_ahead} ${forecastItem.dataPoint.target.time_unit} ahead) ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
                 });
               });
 
-              const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${groupHeader.value}` : '';
+              const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${NumberHelper.formatInt(groupHeader.value)}` : '';
               return `${header}${header && itemStrs.length > 0 ? '<br/>' : ''}${itemStrs.join('<br/>')}`;
-            });
+            }).value();
 
-          return dps.value().join('<br/>');
+          const header = dps.length > 0 ? `${moment(typedParams.head().value().axisValue).format('MM-DD-YYYY')}<br/>` : '';
+          return `${header}${dps.join('<br/>')}`;
         } else {
           return '?';
         }
@@ -186,7 +191,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     return (params: EChartOption.Tooltip.Format | EChartOption.Tooltip.Format[]): string => {
       if (Array.isArray(params)) {
-        const dps = _.chain(params)
+        const typedParams = _.chain(params)
           .filter(x => Array.isArray(x.value) && x.value.length >= 4 && x.value.length <= 5)
           .map(x => {
             return {
@@ -199,7 +204,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
               value: x.value[1],
               interval: (<any[]>x.value).length === 5 && <Interval>x.value[4]
             }
-          })
+          });
+        const dps = typedParams
           .groupBy(x => x.seriesInfo.model.source)
           .map((x, key) => {
             const groupHeader = _.find(x, s => s.seriesInfo.$type === 'DataSourceSeriesInfo');
@@ -208,14 +214,15 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
             const itemStrs = _.map(modelGroups, m => {
               const point = _.find(m, s => !s.interval);
               const ci = _.find(m, s => !!s.interval);
-              return `${point.marker} ${point.label} ${point.value}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${ci.interval.lower} - ${ci.interval.upper})` : '');
+              return `${point.marker} ${point.label} ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
             });
 
             const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${groupHeader.value}` : '';
             return `${header}${header && itemStrs.length > 0 ? '<br/>' : ''}${itemStrs.join('<br/>')}`;
-          });
+          }).value();
 
-        return dps.value().join('<br/>');
+        const header = dps.length > 0 ? `${moment(typedParams.head().value().axisValue).format('MM-DD-YYYY')}<br/>` : '';
+        return `${header}${dps.join('<br/>')}`;
       } else {
         return '?';
       }

@@ -35,7 +35,7 @@ export class LookupService {
     return this.http.get(url, { responseType: 'text' })
       .pipe(map(x => {
         const parsed = Papa.parse(x, { header: true, skipEmptyLines: true });
-        const rows = parsed.data.map((r: any) => ({ id: r.state_code, name: r.state_name }));
+        const rows = parsed.data.map((r: any) => ({ id: r.state_code, name: r.state_name, population: r.hasOwnProperty('population') ? parseInt(r.population) : 0  }));
         const root = _.find(rows, { id: rootIdentifier });
 
         const rootLu = new LocationLookupItem({ ...root, parent: null });

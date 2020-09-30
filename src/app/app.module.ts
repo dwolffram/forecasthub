@@ -33,6 +33,8 @@ import { TutorialLegendDescriptionComponent } from './components/tutorial-legend
 import { TutorialMapDescriptionComponent } from './components/tutorial-map-description/tutorial-map-description.component';
 import { TutorialPlotDescriptionComponent } from './components/tutorial-plot-description/tutorial-plot-description.component';
 import { TutorialPlotForecastDescriptionComponent } from './components/tutorial-plot-forecast-description/tutorial-plot-forecast-description.component';
+import { LabelTruthToPlotSourcePipe } from './pipes/label-truth-to-plot-source.pipe';
+import { LabelTruthToPlotValuePipe } from './pipes/label-truth-to-plot-value.pipe';
 
 @NgModule({
   declarations: [
@@ -59,7 +61,9 @@ import { TutorialPlotForecastDescriptionComponent } from './components/tutorial-
     TutorialLegendDescriptionComponent,
     TutorialMapDescriptionComponent,
     TutorialPlotDescriptionComponent,
-    TutorialPlotForecastDescriptionComponent
+    TutorialPlotForecastDescriptionComponent,
+    LabelTruthToPlotSourcePipe,
+    LabelTruthToPlotValuePipe
   ],
   imports: [
     BrowserModule,

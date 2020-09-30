@@ -1,31 +1,75 @@
-<div class="row" [ngClass]="'row-cols-' + items.length" *ngIf="items$ | async as items">
-  <div class="col" *ngFor="let item of items; let even = even;">
-    <div class="card">
-      <div class="card-header card-header-datasource" [ngClass]="{'datasource-disabled': !item.enabled}"
-        (mouseleave)="onMouseOver(null)" (mouseover)="onMouseOver(item, items)" (click)="toggleEnabled(item, items)">
-        <div class="d-flex align-items-center">
-          <!-- <code>{{item.series.style}}</code>
-          <code>{{item.enabled}}</code> -->
-          <ng-container *ngTemplateOutlet="icon; context: {$implicit: item}">
-          </ng-container>
-          <span class="ml-1 mr-auto font-weight-bold text-truncate datasource-title"
-            [title]="item.model.name">{{ item.model.name }}</span>
-          <fa-icon [icon]="item.enabled ? icons.visible : icons.invisible"></fa-icon>
-        </div>
+<ng-container *ngIf="dataContext$ | async as dataContext">
+  <div class="row form-group">
+    <div class="col-12 d-flex">
+      <div class="btn-group ml-auto">
+        <button class="btn btn-outline-secondary" style="pointer-events: none;">
+          Selection
+        </button>
+        <button class="btn btn-secondary" (click)="changeBlacklisting(dataContext.allModelNames)">
+          None
+        </button>
+        <button class="btn btn-secondary" (click)="changeBlacklisting([])">
+          All
+        </button>
+        <button class="btn btn-secondary" (click)="changeBlacklisting(dataContext.ensembleModelNames)">
+          Ensemble
+        </button>
       </div>
-      <ng-container *ngTemplateOutlet="models; context: {$implicit: item.forecasts, roots: items }">
-      </ng-container>
-      <ng-container *ngIf="item.shiftedForecasts">
-        <div class="card-footer">
-          Models orignally based on {{item.shiftedForecasts.origin}} data
-        </div>
-        <ng-container *ngTemplateOutlet="models; context: {$implicit: item.shiftedForecasts.forecasts,roots: items}">
-        </ng-container>
-      </ng-container>
-
     </div>
   </div>
-</div>
+
+  <div class="alert alert-secondary" *ngIf="dataContext.items.length === 0">
+    <h4 class="alert-heading">No datasource or models available</h4>
+    <p>For the current target <b>{{dataContext.plotValue | labelTruthToPlotValue}}'</b> and location
+      <b>{{dataContext.location.name}}</b> are no datasource or models available. Try to change the selection to another
+      target and/or location.</p>
+    <hr>
+    <p>
+      Use different target
+      <span
+        *ngFor="let p of [TruthToPlotValue.CumulatedCases, TruthToPlotValue.CumulatedDeath, TruthToPlotValue.IncidenceCases, TruthToPlotValue.IncidenceDeath]; last as l; first as f">
+        <ng-container *ngIf="p !== dataContext.plotValue">
+          <span *ngIf="!f && !l">, </span><span *ngIf="l"> or </span><a class="alert-link"
+            (click)="changePlotValue(p)">{{p | labelTruthToPlotValue}}</a>
+        </ng-container>
+      </span>.
+    </p>
+    <p class="mb-0" *ngIf="dataContext.location.parent">
+      Use <a class="alert-link" (click)="changeLocation(dataContext.location.parent)">
+        <b>{{dataContext.location.parent.name}}</b></a> instead of specific province
+      <b>{{dataContext.location.name}}</b>.
+    </p>
+  </div>
+
+  <div class="row" [ngClass]="'row-cols-' + dataContext.items.length">
+    <div class="col" *ngFor="let item of dataContext.items; let even = even;">
+      <div class="card">
+        <div class="card-header card-header-datasource" [ngClass]="{'datasource-disabled': !item.enabled}"
+          (mouseleave)="onMouseOver(null)" (mouseover)="onMouseOver(item, dataContext.items)"
+          (click)="toggleEnabled(item, dataContext.items)">
+          <div class="d-flex align-items-center">
+            <ng-container *ngTemplateOutlet="icon; context: {$implicit: item}">
+            </ng-container>
+            <span class="ml-1 mr-auto font-weight-bold text-truncate datasource-title"
+              [title]="item.model.name">{{ item.model.name }}</span>
+            <fa-icon [icon]="item.enabled ? icons.visible : icons.invisible"></fa-icon>
+          </div>
+        </div>
+        <ng-container *ngTemplateOutlet="models; context: {$implicit: item.forecasts, roots: dataContext.items }">
+        </ng-container>
+        <ng-container *ngIf="item.shiftedForecasts">
+          <div class="card-footer">
+            Models orignally based on {{item.shiftedForecasts.origin}} data
+          </div>
+          <ng-container
+            *ngTemplateOutlet="models; context: {$implicit: item.shiftedForecasts.forecasts,roots: dataContext.items}">
+          </ng-container>
+        </ng-container>
+
+      </div>
+    </div>
+  </div>
+</ng-container>
 
 <ng-template #icon let-item>
   <!-- <code>{{item | json}}</code> -->

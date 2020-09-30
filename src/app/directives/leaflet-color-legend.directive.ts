@@ -2,6 +2,7 @@ import { Directive, Input, OnChanges, OnInit, SimpleChanges } from '@angular/cor
 import { LeafletDirective } from '@asymmetrik/ngx-leaflet';
 import { Control, DomUtil, Map } from 'leaflet';
 import { ThresholdColorScale } from '../models/color-scale';
+import { NumberHelper } from '../util/number-helper';
 
 @Directive({
   selector: '[appLeafletColorLegend]'
@@ -27,11 +28,11 @@ export class LeafletColorLegendDirective implements OnInit, OnChanges {
     return [1, ...thresholds.map(x => Math.ceil(x))].map((grade, index, array) => {
       let label = '';
       if (index === array.length - 1) {
-        label = array[index] + '+';
+        label = NumberHelper.formatInt(array[index]) + '+';
       } else if (array[index] === array[index + 1] - 1) {
-        label = array[index] + '';
+        label = NumberHelper.formatInt(array[index]) + '';
       } else {
-        label = array[index] + '&ndash;' + (array[index + 1] - 1);
+        label = NumberHelper.formatInt(array[index]) + ' - ' + (NumberHelper.formatInt(array[index + 1] - 1));
       }
       return { grade, label };
     });

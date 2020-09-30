@@ -12,47 +12,49 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 - In welchem Format sollen Datumswerte dargestellt werden?
 - Wonach sollen die Bundesländer/Provinzen eingefärbt werden? Aktuelle nach ECDC Datenquelle.
-  - Alternativen: Auswahl Datenquelle, Mapping zwischen Land und Datenquelle
+  - Alternativen: Auswahl Datenquelle (durch User), Mapping zwischen Land und Datenquelle
+- Wenn StadiaTiles verwendet werden sollen, dann muss ein [Account](https://stadiamaps.com/pricing/) angelegt werden
+- Welche Farben sollen die Modelle bekommen? Palette oder Regeln (name === 'xxx' => rot), Hybrid (erst regel, dann palette)?
 
 ## 23.09.20 Meeting ForecastHub
 
 ### TODOs
 
+- ~~Anzeige, wenn keine Daten vorhanden~~
 - ~~Einfärbung der Karte nach gewähltem target (cum/inc cases/death) + Legende in Karte (Wünsche bezüglich der colorscale?)~~
-  - sowas wie inzidenz (durch einwohner)
+  - ~~sowas wie inzidenz (durch einwohner)~~
   - ~~farben linear von gelb nach rot/dunkelrot~~
 - ~~Tooltip Chart~~
 - Forecast Evaluation
 - ~~Play / Pause button to animate forecastDate~~
-- Responsiveness (small devices / look and feel)
+- ~~Responsiveness (small devices / look and feel)~~
 
 ### Offene Fragen
 
 - ~~Sollen alle Modelle oder nur die mit Daten angezeigt werden (Legende)~~
   - ~~Modelle via target und location bestimmen. eingrauen, wenn keine daten da~~
-- Soll es weitere Seite geben? About, Contributors, Data, etc...
-  - Ja, eine mit Tutorial
+- ~~Soll es weitere Seite geben? About, Contributors, Data, etc...~~
+  - ~~Ja, eine mit Tutorial~~
   - ~~Team: Wir und Ihr zusammen ein Team~~
   - ~~Data: Quellen und Methoden~~
   - ~~Link Github repo im header und im footer~~
 - Gibt es eine preferierte Quelle für Geojsons/Shapes, sollen die von 'irgendwo' geladen werden oder mit ins repo gepackt?
   - Mit ins Repo packen
 - ~~Modelle einzeln shiften? NEIN golbaler schalter, geshiftete modelle bekommen symbol der datasource~~
-
-- Werden zukünftig noch weitere Datenquellen folgen, wenn ja: Soll das dynamisch bzw via config gehandelt werden oder kann jmd typescript/angular und passt das an?
-  - nur eine weitere Datenquelle DIVI
-- Habt ihr ein Logo oder Farben (corporate identity stuff)? NEIN
-  - Könnte die Seite auch in einem dunkel Theme sein?
+- ~~Werden zukünftig noch weitere Datenquellen folgen, wenn ja: Soll das dynamisch bzw via config gehandelt werden oder kann jmd typescript/angular und passt das an?~~
+  - ~~nur eine weitere Datenquelle DIVI~~
+- ~~Habt ihr ein Logo oder Farben (corporate identity stuff)? NEIN~~
+  - ~~Könnte die Seite auch in einem dunkel Theme sein?~~
 
 ### Wünsche
 
 - ~~Drei knöpfe Original, JHU, ECDC. Modelle nicht einzeln mappen~~
-- Alle zahlen als Int anzeigen
-- Erklärungstexte evtl. Tour (js) wenn nicht zu aufwendig
+- ~~Alle zahlen als Int anzeigen~~
+- ~~Erklärungstexte evtl. Tour (js) wenn nicht zu aufwendig~~
 - ~~Forecast-Punkte ohne fill, legende bleibt wie sie ist~~
 - ~~Den Bereich vor der ForecastDate-Linie Grau hinterlegen~~
 - ~~Linesymbols größer machen~~
-- Alle, None, Ensemable um Blacklisting der Modelle zu steuern
+- ~~Alle, None, Ensemable um Blacklisting der Modelle zu steuern~~
 
 - ~~Location ist pflicht. NONE ist nicht erlaubt~~
   - ~~location via url steuerbar~~

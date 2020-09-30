@@ -12,7 +12,12 @@
 //   opacity: 0.4 !important;
 // }
 
-.overlay-panel {
-  border: 1px solid #333;
-  background-color: $white;
+// .overlay-panel {
+//   border: 1px solid #333;
+//   background-color: $white;
+// }
+
+.tooltip-inner {
+  opacity: 1 !important;
+  // background-color: green;
 }

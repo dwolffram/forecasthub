@@ -9,6 +9,7 @@ import { ForecastDateDisplayMode, ForecastDisplayMode, ForecastHorizonDisplayMod
 import { QuantileType } from 'src/app/models/forecast-to-plot';
 import { faAngleLeft, faAngleRight, faArrowLeft, faArrowRight, faPause, faPlay, faStop } from '@fortawesome/free-solid-svg-icons';
 import * as moment from 'moment';
+import { faQuestionCircle } from '@fortawesome/free-regular-svg-icons';
 
 @Component({
   selector: 'app-title-settings',
@@ -35,7 +36,8 @@ export class TitleSettingsComponent implements OnInit {
     right: faAngleRight,
     play: faPlay,
     stop: faStop,
-    pause: faPause
+    pause: faPause,
+    help: faQuestionCircle
   };
 
   constructor(private lookupService: LookupService, private stateService: ForecastPlotService) {

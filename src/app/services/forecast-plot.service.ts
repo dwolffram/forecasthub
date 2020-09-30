@@ -43,15 +43,19 @@ export interface ForecastDateDisplayMode {
 
 export type ForecastDisplayMode = ForecastHorizonDisplayMode | ForecastDateDisplayMode;
 
+
+// TODO: Abhängigkeiten rxjs minimieren bsp: ändern von target führt zu 11!!! neuerzeugungen des chart
 @Injectable({
   providedIn: 'root'
 })
 export class ForecastPlotService implements OnDestroy {
 
+  static EnsembleModelNames = ['KITCOVIDhub-median_ensemble'];
+
   private readonly _highlightedSeries = new BehaviorSubject<ModelInfo[]>(null);
-  private readonly _plotValue = new BehaviorSubject<TruthToPlotValue>(TruthToPlotValue.CumulatedCases);
+  private readonly _plotValue = new BehaviorSubject<TruthToPlotValue>(TruthToPlotValue.CumulatedDeath);
   private readonly _disabledSeriesNames = new BehaviorSubject<string[]>(null);
-  private readonly _confidenceInterval = new BehaviorSubject<QuantileType>(null);
+  private readonly _confidenceInterval = new BehaviorSubject<QuantileType>(QuantileType.Q95);
   private readonly _shiftToSource = new BehaviorSubject<TruthToPlotSource>(null);
   private readonly _userLocation = new BehaviorSubject<LocationLookupItem>(undefined);
   private readonly _userDisplayMode = new BehaviorSubject<ForecastDisplayMode>(undefined);
@@ -60,7 +64,8 @@ export class ForecastPlotService implements OnDestroy {
 
 
   readonly highlightedSeries$ = this._highlightedSeries.asObservable();
-  readonly disabledSeriesNames$ = this._disabledSeriesNames.asObservable();
+  // readonly disabledSeriesNames$ = this._disabledSeriesNames.asObservable();
+  readonly disabledSeriesNames$: Observable<string[]>;
   readonly plotValue$ = this._plotValue.asObservable();
   readonly confidenceInterval$ = this._confidenceInterval.asObservable();
   readonly shiftToSource$ = this._shiftToSource.asObservable();
@@ -180,7 +185,13 @@ export class ForecastPlotService implements OnDestroy {
             }
           } as ModelInfo;
         });
-    }))
+    }));
+
+    this.disabledSeriesNames$ = combineLatest(this._disabledSeriesNames.asObservable(), this.availableModels$)
+      .pipe(map(([disabledSeriesNames, availableModels]) => {
+        return disabledSeriesNames || _.without(availableModels.map(m => m.name), ...ForecastPlotService.EnsembleModelNames);
+      }))
+
 
     const forecasts$ = filteredForecasts$
       .pipe(map(x => {
@@ -387,10 +398,12 @@ export class ForecastPlotService implements OnDestroy {
 
   private _forecastSeriesColorMap = new Map<string, string>();
   private _forecastSeriesColors = ['#543005', '#003c30', '#8c510a', '#01665e', '#bf812d', '#35978f', '#dfc27d', '#80cdc1', '#f6e8c3', '#c7eae5', '#f5f5f5',];
+
   private _lastPickedColorIndex = -1;
   private getColor(modelName: string) {
     if (!this._forecastSeriesColorMap.has(modelName)) {
-      const color = this._forecastSeriesColors[this._lastPickedColorIndex += 1];
+      this._lastPickedColorIndex = (this._lastPickedColorIndex + 1) % this._forecastSeriesColors.length;
+      const color = this._forecastSeriesColors[this._lastPickedColorIndex];
       this._forecastSeriesColorMap.set(modelName, color);
     }
 

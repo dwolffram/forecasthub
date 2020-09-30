@@ -1,36 +1,42 @@
 <h4 class="display-4">COVID-19 Forecast <small class="text-muted">{{currentDate | date}}</small></h4>
 
 <div class="row form-group">
-  <label class="col-md-2 col-form-label">Location</label>
-  <div class="col-md-10">
+  <label class="col-md-3 col-lg-4 col-xl-3 col-form-label">Location</label>
+  <div class="col-md-9 col-lg-8 col-xl-9">
     <app-location-select></app-location-select>
   </div>
 </div>
 
 <div class="row form-group">
-  <label class="col-md-2 col-form-label">Target</label>
-  <div class="col-md-10">
+  <label class="col-md-3 col-lg-4 col-xl-3 col-form-label">Target <fa-icon [icon]="icons.help" [ngbTooltip]="helpTarget"></fa-icon>
+    </label>
+  <div class="col-md-9 col-lg-8 col-xl-9">
     <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changePlotValue($event)"
       [ngModel]="plotValue$ | async">
       <label ngbButtonLabel class="btn-secondary">
-        <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedCases"> Cumulated Cases
+        <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedCases">
+        {{TruthToPlotValue.CumulatedCases | labelTruthToPlotValue }}
       </label>
       <label ngbButtonLabel class="btn-secondary">
-        <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedDeath"> Cumulated Death
+        <input ngbButton type="radio" [value]="TruthToPlotValue.CumulatedDeath">
+        {{TruthToPlotValue.CumulatedDeath | labelTruthToPlotValue }}
       </label>
       <label ngbButtonLabel class="btn-secondary">
-        <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceCases"> Incidence Cases
+        <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceCases">
+        {{TruthToPlotValue.IncidenceCases | labelTruthToPlotValue }}
       </label>
       <label ngbButtonLabel class="btn-secondary">
-        <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceDeath"> Incidence Death
+        <input ngbButton type="radio" [value]="TruthToPlotValue.IncidenceDeath">
+        {{TruthToPlotValue.IncidenceDeath | labelTruthToPlotValue }}
       </label>
     </div>
   </div>
 </div>
 
 <div class="row form-group">
-  <label class="col-md-2 col-form-label">Confidence Interval</label>
-  <div class="col-md-10">
+  <label class="col-md-3 col-lg-4 col-xl-3 col-form-label">Confidence Interval <fa-icon [icon]="icons.help" [ngbTooltip]="helpCi">
+    </fa-icon></label>
+  <div class="col-md-9 col-lg-8 col-xl-9">
     <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changeConfidenceInterval($event)"
       [ngModel]="confidenceInterval$ | async">
       <label ngbButtonLabel class="btn-secondary">
@@ -47,18 +53,21 @@
 </div>
 
 <div class="row form-group">
-  <label class="col-md-2 col-form-label">Shift models to</label>
-  <div class="col-md-10">
+  <label class="col-md-3 col-lg-4 col-xl-3 col-form-label">Shift models to <fa-icon [icon]="icons.help" [ngbTooltip]="helpShift">
+    </fa-icon></label>
+  <div class="col-md-9 col-lg-8 col-xl-9">
     <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changeShiftToSource($event)"
       [ngModel]="shiftToSource$ | async">
       <label ngbButtonLabel class="btn-secondary">
         <input ngbButton type="radio" [value]="null"> None
       </label>
       <label ngbButtonLabel class="btn-secondary">
-        <input ngbButton type="radio" [value]="TruthToPlotSource.ECDC"> ECDC
+        <input ngbButton type="radio" [value]="TruthToPlotSource.ECDC">
+        {{TruthToPlotSource.ECDC | labelTruthToPlotSource}}
       </label>
       <label ngbButtonLabel class="btn-secondary">
-        <input ngbButton type="radio" [value]="TruthToPlotSource.JHU"> JHU
+        <input ngbButton type="radio" [value]="TruthToPlotSource.JHU">
+        {{TruthToPlotSource.JHU | labelTruthToPlotSource}}
       </label>
     </div>
   </div>
@@ -66,8 +75,8 @@
 
 <ng-container *ngIf="displayMode$ | async as displayMode">
   <div class="row form-group">
-    <label class="col-md-2 col-form-label">Show forecast by</label>
-    <div class="col-md-10">
+    <label class="col-md-3 col-lg-4 col-xl-3 col-form-label">Show forecast by</label>
+    <div class="col-md-9 col-lg-8 col-xl-9">
       <div ngbRadioGroup class="btn-group btn-group-toggle" [ngModel]="displayMode.mode.$type"
         (ngModelChange)="changeDisplayMode($event, displayMode.availableDates.maximum)">
         <label ngbButtonLabel class="btn-secondary">
@@ -81,35 +90,41 @@
   </div>
 
   <div class="row form-group" *ngIf="displayMode.mode.$type === 'ForecastDateDisplayMode'">
-    <label class="col-md-2 col-form-label">Forecast date</label>
-    <div class="col-md-10">
+    <label class="col-md-3 col-lg-4 col-xl-3 col-form-label">Forecast date</label>
+    <div class="col-md-9 col-lg-8 col-xl-9">
       <div class="btn-group">
         <button class="btn btn-secondary" [disabled]="isPlayingForecastDate"
-          (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)"><fa-icon [icon]="icons.left"></fa-icon></button>
+          (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)">
+          <fa-icon [icon]="icons.left"></fa-icon>
+        </button>
         <div ngbDropdown class="btn-group dropdown-forecast-date">
-          <button class="btn btn-secondary" [disabled]="isPlayingForecastDate" ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
+          <button class="btn btn-secondary" [disabled]="isPlayingForecastDate"
+            ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
           <div ngbDropdownMenu>
             <button ngbDropdownItem *ngFor="let date of displayMode.availableDates.items"
               (click)="changeForecastDate(date)">{{date | date}}</button>
           </div>
         </div>
         <button class="btn btn-secondary" [disabled]="isPlayingForecastDate"
-          (click)="changeForecastDateByDir('prev', displayMode.availableDates, $any(displayMode.mode).date)"><fa-icon [icon]="icons.right"></fa-icon></button>
+          (click)="changeForecastDateByDir('prev', displayMode.availableDates, $any(displayMode.mode).date)">
+          <fa-icon [icon]="icons.right"></fa-icon>
+        </button>
       </div>
       <div class="btn-group ml-1">
-        <button class="btn btn-secondary" (click)="playPauseForecastDate(displayMode.availableDates, $any(displayMode.mode).date)">
+        <button class="btn btn-secondary"
+          (click)="playPauseForecastDate(displayMode.availableDates, $any(displayMode.mode).date)">
           <fa-icon [icon]="isPlayingForecastDate ? icons.pause : icons.play"></fa-icon>
         </button>
         <button class="btn btn-secondary" [disabled]="!isPlayingForecastDate" (click)="stopForecastDate()">
-          <fa-icon [icon]="icons.stop" ></fa-icon>
+          <fa-icon [icon]="icons.stop"></fa-icon>
         </button>
       </div>
     </div>
   </div>
 
   <div class="row form-group" *ngIf="displayMode.mode.$type === 'ForecastHorizonDisplayMode'">
-    <label class="col-md-2 col-form-label">Forecast horizon</label>
-    <div class="col-md-10">
+    <label class="col-md-3 col-lg-4 col-xl-3 col-form-label">Forecast horizon</label>
+    <div class="col-md-9 col-lg-8 col-xl-9">
       <div ngbDropdown class="d-inline-block">
         <button class="btn btn-secondary" ngbDropdownToggle>{{$any(displayMode.mode).horizon}} week
           ahead</button>
@@ -124,50 +139,10 @@
   </div>
 </ng-container>
 
-<!-- <div class="row" *ngIf="displayMode$ | async as displayMode">
-  <div class="col-12">
-    <ul ngbNav #nav="ngbNav" class="nav-tabs" [activeId]="displayMode.mode.$type"
-      (activeIdChange)="changeDisplayMode($event, displayMode.availableDates.maximum)">
-      <li ngbNavItem="ForecastDateDisplayMode">
-        <a ngbNavLink>Date</a>
-        <ng-template ngbNavContent>
-          <button class="btn btn-sm btn-secondary"
-            (click)="changeForecastDateByDir('next', displayMode.availableDates, $any(displayMode.mode).date)">prev</button>
-          <div ngbDropdown class="d-inline-block">
-            <button class="btn btn-sm btn-outline-secondary"
-              ngbDropdownToggle>{{$any(displayMode.mode).date | date}}</button>
-            <div ngbDropdownMenu>
-              <button ngbDropdownItem *ngFor="let date of displayMode.availableDates.items"
-                (click)="changeForecastDate(date)">{{date | date}}</button>
-            </div>
-          </div>
-          <button class="btn btn-sm btn-secondary"
-            (click)="changeForecastDateByDir('prev', displayMode.availableDates, $any(displayMode.mode).date)">next</button>
-        </ng-template>
-      </li>
-      <li ngbNavItem="ForecastHorizonDisplayMode">
-        <a ngbNavLink>Horizon</a>
-        <ng-template ngbNavContent>
-          <div class="d-flex">
-            <label>Location</label>
-            <div ngbDropdown class="d-inline-block">
-              <button class="btn btn-sm btn-outline-secondary" ngbDropdownToggle>{{$any(displayMode.mode).horizon}}
-                ahead</button>
-              <div ngbDropdownMenu>
-                <button ngbDropdownItem (click)="changeForecastHorizon(1)">1 ahead</button>
-                <button ngbDropdownItem (click)="changeForecastHorizon(2)">2 ahead</button>
-                <button ngbDropdownItem (click)="changeForecastHorizon(3)">3 ahead</button>
-                <button ngbDropdownItem (click)="changeForecastHorizon(4)">4 ahead</button>
-              </div>
-            </div>
-          </div>
-        </ng-template>
-      </li>
-    </ul>
-
-    <div class="col-12 border-left border-right">
-      <div class="" [ngbNavOutlet]="nav"></div>
-    </div>
-
-  </div>
-</div> -->
+<ng-template #helpShift><b>Shift</b> means alot to us. In detail u should know that...</ng-template>
+<ng-template #helpCi><b>Confidence Interval</b> means alot to us. In detail u should know that...</ng-template>
+<ng-template #helpTarget>
+  <b>Target</b> means alot to us. In detail u should know that u can also use images and other stuff.<br />
+  <img class="img-fluid" style="height: 100px; width: 100%"
+    src="https://static.anychart.com/images/gallery/v8/line-charts-line-chart.png" />
+</ng-template>

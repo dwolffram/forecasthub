@@ -14,13 +14,14 @@ export class LocationLookup {
   }
 
   get(id: string): LocationLookupItem {
-    return _.find(this.items, { id: id });
+    return _.find(_.flatMap(this.items, i => [i, ...i.children]), { id: id });
   }
 }
 
 export class LocationLookupItem {
   id: string = '';
   name: string = '';
+  population: number;
   children: LocationLookupItem[] = [];
   parent?: LocationLookupItem;
 

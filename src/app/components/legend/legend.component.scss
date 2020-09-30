@@ -4,6 +4,10 @@
   flex-shrink: 0 !important;
 }
 
+.alert-link {
+  cursor: pointer;
+}
+
 .legend-icon {
   height: 16px;
   width: 16px;
@@ -30,7 +34,7 @@
 
   &.forecast-disabled {
     .forecast-title {
-      color: $text-muted;
+      // color: $text-muted;
     }
   }
 
