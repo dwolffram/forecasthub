@@ -1,11 +1,9 @@
 <div class="btn-toolbar" role="toolbar" *ngIf="selections$ | async as selections">
-  <div class="btn-group mr-2" role="group">
+  <div class="btn-group mr-1 mb-1" role="group">
     <div ngbDropdown class="d-inline-block" container="body">
       <button class="btn btn-secondary"
         ngbDropdownToggle>{{selections.root ? selections.root.name : 'Select state' }}</button>
       <div ngbDropdownMenu>
-        <!-- <button ngbDropdownItem [ngClass]="{'font-weight-bold': selections.root === null}"
-          (click)="select(null)">none</button> -->
         <button ngbDropdownItem *ngFor="let item of items$ | async" [ngClass]="{'font-weight-bold': selections.root === item}"
           (click)="select(item)">
           {{item.name}}
@@ -13,7 +11,7 @@
       </div>
     </div>
   </div>
-  <div class="btn-group mr-2" role="group">
+  <div class="btn-group mb-1" role="group">
     <div ngbDropdown class="d-inline-block" container="body">
       <button class="btn btn-secondary" [disabled]="!selections.root"
         ngbDropdownToggle>{{selections.province ? selections.province.name : 'Select region'}}</button>

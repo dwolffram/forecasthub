@@ -116,7 +116,7 @@ export class MapComponent implements OnInit, OnDestroy {
 
   correctedFitBounds: L.LatLngBounds;
   onMapResized(selectedLayer: L.GeoJSON): void {
-    this.correctedFitBounds = selectedLayer ? selectedLayer.getBounds() : null;
+    this.correctedFitBounds = selectedLayer ? selectedLayer.getBounds() : null
   }
 
   private getStateStyle(isHovered: boolean): L.PathOptions {
