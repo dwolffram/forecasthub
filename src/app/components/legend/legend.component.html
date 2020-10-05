@@ -20,7 +20,7 @@
 
   <div class="alert alert-secondary" *ngIf="dataContext.items.length === 0">
     <h4 class="alert-heading">No datasource or models available</h4>
-    <p>For the current target <b>{{dataContext.plotValue | labelTruthToPlotValue}}'</b> and location
+    <p>For the current target <b>{{dataContext.plotValue | labelTruthToPlotValue}}</b> and location
       <b>{{dataContext.location.name}}</b> are no datasource or models available. Try to change the selection to another
       target and/or location.</p>
     <hr>
@@ -35,8 +35,8 @@
       </span>.
     </p>
     <p class="mb-0" *ngIf="dataContext.location.parent">
-      Use <a class="alert-link" (click)="changeLocation(dataContext.location.parent)">
-        <b>{{dataContext.location.parent.name}}</b></a> instead of specific province
+      Use national level <a class="alert-link" (click)="changeLocation(dataContext.location.parent)">
+        <b>{{dataContext.location.parent.name}}</b></a> instead of specific region
       <b>{{dataContext.location.name}}</b>.
     </p>
   </div>

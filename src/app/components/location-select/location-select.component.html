@@ -16,10 +16,10 @@
   <div class="btn-group mr-2" role="group">
     <div ngbDropdown class="d-inline-block" container="body">
       <button class="btn btn-secondary" [disabled]="!selections.root"
-        ngbDropdownToggle>{{selections.province ? selections.province.name : 'Select province'}}</button>
+        ngbDropdownToggle>{{selections.province ? selections.province.name : 'Select region'}}</button>
       <div ngbDropdownMenu *ngIf="selections.root">
         <button ngbDropdownItem [ngClass]="{'font-weight-bold': selections.province === null}"
-          (click)="select(selections.root)">none</button>
+          (click)="select(selections.root)">none (national level)</button>
         <button ngbDropdownItem *ngFor="let item of selections.root.children"
           [ngClass]="{'font-weight-bold': selections.province === item}" (click)="select(item)">
           {{item.name}}

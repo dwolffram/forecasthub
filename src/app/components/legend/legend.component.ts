@@ -34,7 +34,7 @@ interface DataSourceLegendItem {
   styleUrls: ['./legend.component.scss']
 })
 export class LegendComponent implements OnInit {
-  dataContext$: Observable<{plotValue: TruthToPlotValue, location: LocationLookupItem, ensembleModelNames: string[], allModelNames: string[], items: DataSourceLegendItem[] }>;
+  dataContext$: Observable<{ plotValue: TruthToPlotValue, location: LocationLookupItem, ensembleModelNames: string[], allModelNames: string[], items: DataSourceLegendItem[] }>;
   TruthToPlotSource = TruthToPlotSource;
   TruthToPlotValue = TruthToPlotValue;
 
@@ -52,7 +52,7 @@ export class LegendComponent implements OnInit {
     this.dataContext$ = combineLatest([this.stateService.series$, this.stateService.availableModels$, this.stateService.shiftToSource$, this.stateService.disabledSeriesNames$])
       .pipe(map(([series, availableModels, shiftToSource, disabledSeriesNames]) => {
         const allModelNames = availableModels.map(x => x.name);
-
+        console.log("DATACONTEXT: ", series, availableModels, shiftToSource, disabledSeriesNames);
         return {
           plotValue: series.settings.plotValue,
           location: series.settings.location,
@@ -82,6 +82,7 @@ export class LegendComponent implements OnInit {
 
   private _createLegendItems(availableModels: ModelInfo[], series: SeriesInfo[], shiftTo: TruthToPlotSource, disabledSeriesNames: string[]): DataSourceLegendItem[] {
     if (!series || series.length === 0) return [];
+    console.log("creating legend items withc disabled", disabledSeriesNames);
 
     const dataSourceSeries = series.filter(x => x.$type === 'DataSourceSeriesInfo') as DataSourceSeriesInfo[];
     const forecastSeries = series.filter(x => x.$type === 'ForecastDateSeriesInfo' || x.$type === 'ForecastHorizonSeriesInfo') as ForecastSeriesInfo[];
@@ -91,7 +92,7 @@ export class LegendComponent implements OnInit {
       const ownModels = _.filter(availableModels, m => m.source === x.model.source);
       const shiftedForecasts = shiftTo && this.createForecastLegendItems(_.without(availableModels, ...ownModels), forecastSeries, disabledSeriesNames);
       const isEnabled = disabledSeriesNames && disabledSeriesNames.indexOf(x.model.name) === -1;
-
+      // !disabledSeriesNames || disabledSeriesNames.length === 0
       return {
         $type: 'DataSourceLegendItem',
         model: x.model,
@@ -127,11 +128,11 @@ export class LegendComponent implements OnInit {
     this.stateService.disabledSeriesNames = blacklist || [];
   }
 
-  changePlotValue(plotValue: TruthToPlotValue){
+  changePlotValue(plotValue: TruthToPlotValue) {
     this.stateService.plotValue = plotValue;
   }
 
-  changeLocation(location: LocationLookupItem){
+  changeLocation(location: LocationLookupItem) {
     this.stateService.userLocation = location;
   }
 

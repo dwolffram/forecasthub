@@ -6,8 +6,19 @@ import { TruthToPlotValue } from '../models/truth-to-plot';
 })
 export class LabelTruthToPlotValuePipe implements PipeTransform {
 
-  transform(value: TruthToPlotValue, ...args: never[]): unknown {
-    switch(value){
+  transform(value: TruthToPlotValue, ...args: [boolean]): unknown {
+    const trim = (args.length > 0 && args[0]) || false;
+    if (trim) {
+      switch (value) {
+        case TruthToPlotValue.CumulatedCases: return 'Cum. Cases'
+        case TruthToPlotValue.CumulatedDeath: return 'Cum. Death'
+        case TruthToPlotValue.IncidenceCases: return 'Inc. Cases'
+        case TruthToPlotValue.IncidenceDeath: return 'Inc. Death'
+        default: return `Unknown TruthToPlotValue (${value})`;
+      }
+    }
+
+    switch (value) {
       case TruthToPlotValue.CumulatedCases: return 'Cumulated Cases'
       case TruthToPlotValue.CumulatedDeath: return 'Cumulated Death'
       case TruthToPlotValue.IncidenceCases: return 'Incidence Cases'

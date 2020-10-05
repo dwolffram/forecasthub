@@ -6,4 +6,23 @@
       overflow-y: scroll;
     }
   }
+
+  .tooltip.show {
+    opacity: 1 !important;
+    .tooltip-inner {
+      background: #333;
+    }
+  }
+}
+
+.label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label-text-with-icon{
+  @extend .label-text;
+
+  max-width: calc(100% - 16px);
 }

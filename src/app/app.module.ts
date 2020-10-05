@@ -35,6 +35,7 @@ import { TutorialPlotDescriptionComponent } from './components/tutorial-plot-des
 import { TutorialPlotForecastDescriptionComponent } from './components/tutorial-plot-forecast-description/tutorial-plot-forecast-description.component';
 import { LabelTruthToPlotSourcePipe } from './pipes/label-truth-to-plot-source.pipe';
 import { LabelTruthToPlotValuePipe } from './pipes/label-truth-to-plot-value.pipe';
+import { LabelDataSourcePipe } from './pipes/label-data-source.pipe';
 
 @NgModule({
   declarations: [
@@ -63,7 +64,8 @@ import { LabelTruthToPlotValuePipe } from './pipes/label-truth-to-plot-value.pip
     TutorialPlotDescriptionComponent,
     TutorialPlotForecastDescriptionComponent,
     LabelTruthToPlotSourcePipe,
-    LabelTruthToPlotValuePipe
+    LabelTruthToPlotValuePipe,
+    LabelDataSourcePipe
   ],
   imports: [
     BrowserModule,

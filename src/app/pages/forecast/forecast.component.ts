@@ -9,6 +9,8 @@ import { ForecastDisplayMode, ForecastPlotService } from 'src/app/services/forec
 import { GeoShapeService } from 'src/app/services/geo-shape.service';
 import { ActivatedRoute } from '@angular/router';
 import { LoadingService } from 'src/app/services/loading.service';
+import { AppStateService } from 'src/app/services/app-state.service';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-forecast',
@@ -17,30 +19,40 @@ import { LoadingService } from 'src/app/services/loading.service';
 })
 export class ForecastComponent implements OnInit, OnDestroy {
   loading$: Observable<any>;
-  _locationSubscription: Subscription;
+  private _locationSubscription: Subscription;
+  private _footerSubscription: Subscription;
+  private dateFormatPipe = new DatePipe('en');
 
-  constructor(private stateService: ForecastPlotService, private activatedRoute: ActivatedRoute, private lookupService: LookupService, private loadingService: LoadingService) {
+  constructor(private stateService: ForecastPlotService, private activatedRoute: ActivatedRoute, private lookupService: LookupService, private loadingService: LoadingService, private appState: AppStateService) {
     this._locationSubscription = combineLatest([
       this.activatedRoute.paramMap,
       this.lookupService.locations$
-    ])
-      .subscribe(([x, locationLu]) => {
-        if (x.has('locationId')) {
-          const urlLocation = x.get('locationId');
-          const location = locationLu.get(urlLocation.toUpperCase());
-          if (location) {
-            this.stateService.userLocation = location;
-          }
+    ]).subscribe(([x, locationLu]) => {
+      if (x.has('locationId')) {
+        const urlLocation = x.get('locationId');
+        const location = locationLu.get(urlLocation.toUpperCase());
+        if (location) {
+          this.stateService.userLocation = location;
         }
-      });
+      }
+    });
+
+    this._footerSubscription = this.lookupService.forecastDates$.pipe(map(x => x.maximum)).subscribe(m => {
+      this.appState.addToFooter(this.footerItem = { content: `Date: ${this.dateFormatPipe.transform(m.toDate())}` });
+    });
   }
 
+  private footerItem: any;
   ngOnInit(): void {
     this.loading$ = this.loadingService.loading$;
   }
 
   ngOnDestroy(): void {
     this._locationSubscription.unsubscribe();
+    this._footerSubscription.unsubscribe();
+    if (this.footerItem) {
+      this.appState.removeFromFooter(this.footerItem);
+    }
   }
 
 }

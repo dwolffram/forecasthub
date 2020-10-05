@@ -7,17 +7,4 @@
 @import './app/directives/leaflet-color-legend.directive.scss';
 @import '~@angular/cdk/overlay-prebuilt';
 
-// .overlay-backdrop {
-//   background-color: orange;
-//   opacity: 0.4 !important;
-// }
 
-// .overlay-panel {
-//   border: 1px solid #333;
-//   background-color: $white;
-// }
-
-.tooltip-inner {
-  opacity: 1 !important;
-  // background-color: green;
-}

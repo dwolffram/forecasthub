@@ -217,7 +217,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
               return `${point.marker} ${point.label} ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
             });
 
-            const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${groupHeader.value}` : '';
+            const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${NumberHelper.formatInt(groupHeader.value)}` : '';
             return `${header}${header && itemStrs.length > 0 ? '<br/>' : ''}${itemStrs.join('<br/>')}`;
           }).value();
 

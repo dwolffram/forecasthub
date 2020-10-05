@@ -41,6 +41,9 @@
 <footer class="bg-light py-1">
   <div class="container">
     <div class="d-flex" style="align-items: center;">
+      <ng-container *ngIf="footerItems$ | async as footerItems">
+        <span class="text-muted" *ngFor="let item of footerItems">{{item.content}}</span>
+      </ng-container>
       <span class="text-muted ml-auto mr-1">Also visit us on</span>
       <a class="text-muted github-link"
         href="https://github.com/KITmetricslab/covid19-forecast-hub-de#german-and-polish-covid-19-forecast-hub"

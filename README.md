@@ -4,6 +4,45 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Aktuell
 
+### TODO
+
+#### Misc
+
+- Polen bekommt population (gucken ob alles geht)
+- ~~Settings in zwei Spalten auf großen Monitoren (siehe Layout googledoc)~~
+- ~~Titel: Datum raus + 'German and Polish COVID-19 ForecastHub' + eigene Zeile~~
+- ~~province drop down (none + 'national level')~~
+- ~~umbennen province -> region~~
+- ~~Footer mit Max ForecastDate als Stichtag~~
+- ~~Ränder wieder rund~~
+- ~~standard selection: all~~
+- ~~Formatierung der Datenquellenname~~
+  - ~~ECDC: ECDC/RKI/MZ~~
+  - ~~jhu: JHU~~
+
+#### Plot
+
+- Datumsformat im Plot YYYY-MM-DD
+- colorpalette für modelle = [palette](https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11)
+- datazoom default = [MaxforeCastDate - 10 wochen, Ende];
+- YAchsenTitel = target
+- Tooltip mit `${Decimal(value, 4)} pro 100.000 Einwohner`
+- Tooltip: Forecasts einrücken + hintergrund weniger opacity + shapes umranden?
+  - Bei horizon nur das '3wk ahead' (auswahl) anzeigen
+- Symbole im plot und legende dickerer Rand
+- Forecast Symbole im Plot weiß ausfüllen anstatt transparent
+- ForecastArea heller
+- observed ForecastPoints nur der letzte wird angezeigt
+
+#### Map
+
+- email irgendwo anlegen und account auf stadia registrieren für tiles
+- Karte in Graustufen einfärben, nicht aktives Land nur umranden, ohne füllung
+- Karte ohne Legende und Caption mit Target und ist Observed
+- Shapes mit in App
+
+## 02.10.20
+
 ### Ideen
 
 - Datasource data filtern nach forecastDate
@@ -15,6 +54,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
   - Alternativen: Auswahl Datenquelle (durch User), Mapping zwischen Land und Datenquelle
 - Wenn StadiaTiles verwendet werden sollen, dann muss ein [Account](https://stadiamaps.com/pricing/) angelegt werden
 - Welche Farben sollen die Modelle bekommen? Palette oder Regeln (name === 'xxx' => rot), Hybrid (erst regel, dann palette)?
+- Soll der Zoom des Charts am anfang im [0-100] sein?
 
 ## 23.09.20 Meeting ForecastHub
 
