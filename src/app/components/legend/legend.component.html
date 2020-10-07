@@ -1,7 +1,7 @@
 <ng-container *ngIf="dataContext$ | async as dataContext">
   <div class="row form-group">
     <div class="col-12 d-flex">
-      <div class="btn-group ml-auto">
+      <div class="btn-group btn-group-sm ml-auto">
         <button class="btn btn-outline-secondary" style="pointer-events: none;">
           Selection
         </button>
@@ -75,11 +75,13 @@
   <!-- <code>{{item | json}}</code> -->
   <svg version="1.1" xmlns="http://www.w3.org/2000/svg" class="d-block legend-icon shrink-0"
     [ngSwitch]="item.model.style.symbol">
-    <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" stroke-width="1" [attr.stroke]="item.model.style.color"
-      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.model.style.color" />
+    <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'"
+      [attr.stroke-width]="item.$type === 'ForecastLegendItem' ? 2 : 1" [attr.stroke]="item.model.style.color"
+      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'white' : item.model.style.color" />
 
-    <circle cx="8" cy="8" r="6" *ngSwitchDefault stroke-width="1" [attr.stroke]="item.model.style.color"
-      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'transparent' : item.model.style.color" />
+    <circle cx="8" cy="8" r="6" *ngSwitchDefault [attr.stroke-width]="item.$type === 'ForecastLegendItem' ? 2 : 1"
+      [attr.stroke]="item.model.style.color"
+      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'white' : item.model.style.color" />
   </svg>
 </ng-template>
 

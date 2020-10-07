@@ -69,7 +69,7 @@ export class LegendComponent implements OnInit {
       .map(m => {
         // const adjustment = adjustments.has(f.name) && adjustments.get(f.name);
         // const adjust = adjustment && adjustment !== f.targetSource ? adjustment : null;
-        const hasSeries = forecastSeries.some(f => f.model.name === m.name);
+        const hasSeries = forecastSeries.some(f => f.model.name === m.name && f.data && f.data.length > 0);
         return {
           $type: 'ForecastLegendItem',
           model: m,

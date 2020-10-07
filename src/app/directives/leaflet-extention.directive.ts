@@ -1,3 +1,4 @@
+import { TemplateRef } from '@angular/core';
 import { Directive, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { LeafletDirective } from '@asymmetrik/ngx-leaflet';
 import { Control, DomUtil, Map } from 'leaflet';
@@ -5,20 +6,52 @@ import { ThresholdColorScale } from '../models/color-scale';
 import { NumberHelper } from '../util/number-helper';
 
 @Directive({
-  selector: '[appLeafletColorLegend]'
+  selector: '[appLeafletExtention]'
 })
-export class LeafletColorLegendDirective implements OnInit, OnChanges {
+export class LeafletExtentionDirective implements OnInit, OnChanges {
 
   @Input() colorScale: ThresholdColorScale;
+  @Input() title: string;
 
   constructor(private _leaflet: LeafletDirective,) { }
 
   ngOnInit(): void {
-    this._leaflet.map.whenReady(() => this.updateLegend(this._leaflet.map, this.colorScale));
+    this._leaflet.map.whenReady(() => this.updateAll(this._leaflet.map));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.updateLegend(this._leaflet.map, this.colorScale);
+    if (changes.colorScale) {
+      this.updateLegend(this._leaflet.map, this.colorScale);
+    }
+    if(changes.title){
+      this.updateTitle(this._leaflet.map, this.title);
+    }
+  }
+
+  private titleControl: Control;
+  private updateTitle(map: Map, title: string) {
+    const onOpen = () => this.titleControl.remove();
+    const onClose = () => this.titleControl.addTo(map);
+
+    if (this.titleControl) {
+      this.titleControl.remove();
+      this.titleControl = null;
+      map.off('tooltipopen', onOpen);
+      map.off('tooltipclose', onClose);
+    }
+
+    if (map && title !== undefined) {
+      const titleControl = new Control({ position: 'topleft' });
+      titleControl.onAdd = (map) => {
+        const div = DomUtil.create('div', 'info title');
+        div.innerHTML = title;
+        return div;
+      };
+      map.on('tooltipopen', onOpen);
+      map.on('tooltipclose', onClose);
+      titleControl.addTo(map);
+      this.titleControl = titleControl;
+    }
   }
 
   private createIntLegendItems(scale: ThresholdColorScale) {
@@ -60,5 +93,10 @@ export class LeafletColorLegendDirective implements OnInit, OnChanges {
       legend.addTo(map);
       this.legend = legend;
     }
+  }
+
+  private updateAll(map: Map): void {
+    this.updateLegend(map, this.colorScale);
+    this.updateTitle(map, this.title);
   }
 }

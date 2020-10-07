@@ -32,7 +32,7 @@ export class MapComponent implements OnInit, OnDestroy {
     scrollWheelZoom: false,
     dragging: false,
     layers: [
-      L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', {
+      L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key=72893ba3-bd5c-43cc-a377-80e865a2e3e5', {
         maxZoom: 20,
         attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
       })
@@ -54,10 +54,11 @@ export class MapComponent implements OnInit, OnDestroy {
 
         const provinceColorScaleValues = new Map<string, number>(provinceColorScaleData.map(x => {
           const population = locationLu.get(x.dataPoint.idLocation)?.population || 0;
-          let value = x.y;
-          if (plotValue === TruthToPlotValue.CumulatedCases || plotValue === TruthToPlotValue.CumulatedDeath) {
-            value = (x.y / (population > 0 ? population : Infinity)) * 100000;
-          }
+          const value = (x.y / (population > 0 ? population : Infinity)) * 100000;
+          // let value = x.y;
+          // if (plotValue === TruthToPlotValue.CumulatedCases || plotValue === TruthToPlotValue.CumulatedDeath) {
+          //   value = (x.y / (population > 0 ? population : Infinity)) * 100000;
+          // }
 
           return [x.dataPoint.idLocation, value];
         }));
@@ -102,6 +103,7 @@ export class MapComponent implements OnInit, OnDestroy {
         this.correctedFitBounds = null;
 
         return {
+          plotValue: plotValue,
           selectedLayer: selectedLayer,
           provinceColorScale: provinceColorScale,
           fitBounds: selectedLayer.getBounds(),
@@ -124,7 +126,7 @@ export class MapComponent implements OnInit, OnDestroy {
       color: isHovered ? '#333' : '#4e555b',
       weight: isHovered ? 2 : 1,
 
-      fillColor: '#333',
+      fillColor: 'transparent',
       fillOpacity: 0.5,
     };
   }
@@ -148,7 +150,7 @@ export class MapComponent implements OnInit, OnDestroy {
       const locationItem = _.find(stateItem.children, x => x.id === f.id);
       const locationValue = dataMap.has(locationItem.id) && dataMap.get(locationItem.id);
 
-      return `${locationItem.name} ${(locationValue && NumberHelper.formatInt(locationValue)) || ''}`;
+      return `${locationItem.name} ${(locationValue && `${NumberHelper.formatDecimal(locationValue, 4)} per 100,000 inhabitants`) || ''}`;
     };
 
     const geojsonData = shapes.map(r => r.geom);

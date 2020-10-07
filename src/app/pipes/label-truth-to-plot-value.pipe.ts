@@ -6,7 +6,7 @@ import { TruthToPlotValue } from '../models/truth-to-plot';
 })
 export class LabelTruthToPlotValuePipe implements PipeTransform {
 
-  transform(value: TruthToPlotValue, ...args: [boolean]): unknown {
+  transform(value: TruthToPlotValue, ...args: [boolean?]): string {
     const trim = (args.length > 0 && args[0]) || false;
     if (trim) {
       switch (value) {

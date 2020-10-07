@@ -267,7 +267,7 @@ export class ForecastPlotService implements OnDestroy {
         if (g.length <= 1) return null;
 
         const quantiles = _.chain(g.filter(c => c.type === ForecastToPlotType.Quantile && c.target.time_ahead === settings.displayMode.horizon));
-        const points = g.filter(c => c.type !== ForecastToPlotType.Quantile);
+        const points = g.filter(c => c.type === ForecastToPlotType.Observed || (c.type === ForecastToPlotType.Point && c.target.time_ahead === settings.displayMode.horizon));
 
         const intervals = settings.confInterval !== null && quantiles
           .groupBy(x => x.target.end_date.toISOString())
@@ -284,13 +284,15 @@ export class ForecastPlotService implements OnDestroy {
           }, new Map<string, Interval>())
           .value();
 
-        return points.map(p => {
+        const allPoints = _.orderBy(points.map(p => {
           const linePoint = { $type: 'ForecastSeriesInfoDataItem', x: p.target.end_date, y: this.getYValue(p, settings.shiftToSource), dataPoint: p } as ForecastSeriesInfoDataItem;
           if (intervals && p.type === ForecastToPlotType.Point && intervals.has(linePoint.x.toISOString())) {
             linePoint.interval = intervals.get(linePoint.x.toISOString());
           }
           return linePoint;
-        });
+        }), x => x.x.toDate(), 'asc');
+
+        return allPoints.length > 1 ? allPoints : null;
       })
       .filter(d => d !== null)
       .value();
@@ -340,7 +342,7 @@ export class ForecastPlotService implements OnDestroy {
       .value();
 
     const data = orderedData
-      .filter(d => d.type === ForecastToPlotType.Point || d.type === ForecastToPlotType.Observed)
+      .filter((d, i, array) => d.type === ForecastToPlotType.Point || (d.type === ForecastToPlotType.Observed && !_.find(array, f => f.type === ForecastToPlotType.Observed, i + 1)))
       .map((d, i, array) => {
         const y = this.getYValue(d, settings.shiftToSource);
         const result = { x: d.target.end_date, y: y, dataPoint: d } as ForecastSeriesInfoDataItem;
@@ -363,7 +365,7 @@ export class ForecastPlotService implements OnDestroy {
         source: firstDataPoint.truth_data_source,
         name: x.key,
         style: {
-          color: this._forecastSeriesColors[index % this._forecastSeriesColors.length],
+          color: this.getColor(x.key),
           symbol: settings.shiftToSource ? this.getSymbol(settings.shiftToSource) : this.getSymbol(firstDataPoint.truth_data_source)
         },
       },
@@ -395,7 +397,8 @@ export class ForecastPlotService implements OnDestroy {
   }
 
   private _forecastSeriesColorMap = new Map<string, string>();
-  private _forecastSeriesColors = ['#543005', '#003c30', '#8c510a', '#01665e', '#bf812d', '#35978f', '#dfc27d', '#80cdc1', '#f6e8c3', '#c7eae5', '#f5f5f5',];
+  // private _forecastSeriesColors = ['#543005', '#003c30', '#8c510a', '#01665e', '#bf812d', '#35978f', '#dfc27d', '#80cdc1', '#f6e8c3', '#c7eae5', '#f5f5f5',];
+  private _forecastSeriesColors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99'];
 
   private _lastPickedColorIndex = -1;
   private getColor(modelName: string) {

@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row mb-2">
   <div class="col-md-4 d-none d-md-block">
     <div class="row form-group h-100">
       <div class="col-md-12">
@@ -6,7 +6,6 @@
       </div>
     </div>
   </div>
-
   <div class="col-md-8">
     <div class="row">
       <div class="col-md-6">
@@ -101,7 +100,7 @@
 
     <div class="row">
       <div class="col-6">
-        <div class="row form-group">
+        <div class="row form-group" style="margin-bottom: 0;">
           <ng-container *ngIf="displayMode$ | async as displayMode">
             <label class="col-xl-3 col-form-label label-text" title="Show forecast by">Show forecast by</label>
             <div class="col-xl-9">
@@ -120,7 +119,7 @@
       </div>
       <div class="col-6">
         <ng-container *ngIf="displayMode$ | async as displayMode">
-          <div class="row form-group" *ngIf="displayMode.mode.$type === 'ForecastDateDisplayMode'">
+          <div class="row form-group" style="margin-bottom: 0;" *ngIf="displayMode.mode.$type === 'ForecastDateDisplayMode'">
             <label class="col-xl-4 col-form-label label-text" title="Forecast date">Forecast date</label>
             <div class="col-xl-8">
               <div class="btn-toolbar">
@@ -155,10 +154,10 @@
             </div>
           </div>
 
-          <div class="row form-group" *ngIf="displayMode.mode.$type === 'ForecastHorizonDisplayMode'">
-            <label class="col-lg-3 col-form-label label-text" title="Forecast horizon">Forecast
+          <div class="row form-group" style="margin-bottom: 0;" *ngIf="displayMode.mode.$type === 'ForecastHorizonDisplayMode'">
+            <label class="col-xl-4 col-form-label label-text" title="Forecast horizon">Forecast
               horizon</label>
-            <div class="col-lg-9">
+            <div class="col-xl-8">
               <div ngbDropdown class="d-inline-block">
                 <button class="btn btn-secondary" ngbDropdownToggle>{{$any(displayMode.mode).horizon}} week
                   ahead</button>

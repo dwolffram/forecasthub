@@ -5,10 +5,13 @@ import { EChartOption, ECharts } from 'echarts';
 import * as _ from 'lodash';
 import { LookupService } from 'src/app/services/lookup.service';
 import * as moment from 'moment';
-import { ForecastPlotService, ForecastSettings } from 'src/app/services/forecast-plot.service';
+import { ForecastHorizonDisplayMode, ForecastPlotService, ForecastSettings } from 'src/app/services/forecast-plot.service';
 import { SeriesInfo, SeriesInfoDataItem, ModelInfo, ForecastSeriesInfoDataItem, Interval } from 'src/app/models/series-info';
 import { NumberHelper } from 'src/app/util/number-helper';
 import { ForecastDateLookup } from 'src/app/models/lookups';
+import { LabelTruthToPlotValuePipe } from 'src/app/pipes/label-truth-to-plot-value.pipe';
+import { DateHelper } from 'src/app/util/date-helper';
+import { isWhiteSpaceLike } from 'typescript';
 
 
 @Component({
@@ -42,7 +45,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       }
     });
 
-    const chartOption$ = combineLatest([
+    this.data$ = combineLatest([
       this.stateService.activeSeries$
         .pipe(map(x => {
           const result = this._createSeries(x.data, x.settings);
@@ -52,18 +55,19 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           }
           return { series: result, settings: x.settings, hasSeries };
         })),
-      this.stateService.dateRange$
+      this.stateService.dateRange$,
+      this.lookupService.forecastDates$
     ])
-      .pipe(map(([activeSeries, dateRange]) => {
-        const options = this._createChartOption(activeSeries.series, dateRange, activeSeries.settings);
+      .pipe(map(([activeSeries, dateRange, availableDates]) => {
+        const options = this._createChartOption(activeSeries.series, dateRange, activeSeries.settings, availableDates);
         console.log("created chartOptions", options, "for", activeSeries.series, dateRange);
-        return { options, settings: activeSeries.settings, hasSeries: activeSeries.hasSeries };
+        return { chartOptions: options, settings: activeSeries.settings, hasSeries: activeSeries.hasSeries, dates: availableDates };
       }));
 
-    this.data$ = combineLatest([chartOption$, this.lookupService.forecastDates$])
-      .pipe(map(([chartOptions, dates]) => {
-        return { chartOptions: chartOptions.options, dates, settings: chartOptions.settings, hasSeries: chartOptions.hasSeries }
-      }));
+    // this.data$ = combineLatest([chartOption$, this.lookupService.forecastDates$])
+    //   .pipe(map(([chartOptions, dates]) => {
+    //     return { chartOptions: chartOptions.options, dates, settings: chartOptions.settings, hasSeries: chartOptions.hasSeries }
+    //   }));
   }
 
   zrClick(event: any, dates: ForecastDateLookup, currentSettings: ForecastSettings) {
@@ -107,18 +111,29 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     }
   }
 
-  private _createChartOption(series: any[], dateRange: [moment.Moment, moment.Moment], settings: ForecastSettings): EChartOption<EChartOption.Series> {
+  private plotValueLabelPipe = new LabelTruthToPlotValuePipe();
+  private _createChartOption(series: any[], dateRange: [moment.Moment, moment.Moment], settings: ForecastSettings, dates: ForecastDateLookup): EChartOption<EChartOption.Series> {
     const dzXInside: any = { type: 'inside', filterMode: 'filter', xAxisIndex: 0, minValueSpan: 1000 * 3600 * 24 * 7 * 10 };
     const dzXSlider: any = { type: 'slider', filterMode: 'filter', xAxisIndex: 0, minValueSpan: 1000 * 3600 * 24 * 7 * 10 };
 
     if (this._lastDataZoom) {
       dzXInside.start = this._lastDataZoom.start;
       dzXInside.end = this._lastDataZoom.end;
+    } else {
+      dzXInside.startValue = moment(dates.maximum).subtract(10, 'w').toDate();
+      dzXInside.end = 100;
     }
 
     const xAxis: any = {
       type: 'time',
       minInterval: 1000 * 3600 * 24 * 7,
+      splitNumber: 10,
+      // maxInterval: 1000 * 3600 * 24 * 7,
+      axisLabel: {
+        formatter: (value, index) => {
+          return DateHelper.formatTicks(value);
+        }
+      }
     };
 
     if (dateRange) {
@@ -129,14 +144,21 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     return {
       grid: {
         top: 20,
-        left: 60,
+        left: 62,
         right: 20,
         bottom: 60
       },
       xAxis: xAxis,
-      yAxis: { type: 'value', scale: true },
+      yAxis: {
+        type: 'value',
+        scale: true,
+        name: this.plotValueLabelPipe.transform(settings.plotValue),
+        nameLocation: 'middle',
+        nameGap: 50
+      },
       tooltip: {
         trigger: 'axis',
+        backgroundColor: 'rgba(50,50,50,0.9)',
         axisPointer: { show: true },
         formatter: this.createTooltipFormatter(settings)
       },
@@ -166,22 +188,19 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
             .groupBy(x => x.seriesInfo.model.source)
             .map((x, key) => {
               const groupHeader = _.find(x, s => s.seriesInfo.$type === 'DataSourceSeriesInfo');
-              const modelGroups = _.groupBy(_.orderBy(_.filter(x, s => s.item.$type === 'ForecastSeriesInfoDataItem' && s.item.dataPoint.target.time_ahead > 0), ['item.dataPoint.target.time_ahead', 'value'], ['asc', 'desc']), s => s.seriesInfo.model.name);
-
-              const itemStrs = _.flatMap(modelGroups, m => {
-                return m.map(mm => {
-                  const forecastItem = mm.item as ForecastSeriesInfoDataItem;
-                  const point = mm;
+              const itemStrs = _.orderBy(_.filter(x, s => s.item.$type === 'ForecastSeriesInfoDataItem' && s.item.dataPoint.target.time_ahead > 0), ['item.dataPoint.target.time_ahead', 'value'], ['asc', 'desc'])
+                .map(point => {
+                  const forecastItem = point.item as ForecastSeriesInfoDataItem;
                   const ci = forecastItem.interval && forecastItem;
-                  return `${point.marker} ${point.label} (${forecastItem.dataPoint.target.time_ahead} ${forecastItem.dataPoint.target.time_unit} ahead) ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
+                  return `${groupHeader ? '&nbsp;&nbsp;&nbsp;' : ''}${point.marker} ${point.label} ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
+                  // return `${groupHeader ? '&nbsp;&nbsp;&nbsp;' : ''}${point.marker} ${point.label} (${forecastItem.dataPoint.target.time_ahead} ${forecastItem.dataPoint.target.time_unit} ahead) ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
                 });
-              });
 
               const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${NumberHelper.formatInt(groupHeader.value)}` : '';
               return `${header}${header && itemStrs.length > 0 ? '<br/>' : ''}${itemStrs.join('<br/>')}`;
             }).value();
 
-          const header = dps.length > 0 ? `${moment(typedParams.head().value().axisValue).format('MM-DD-YYYY')}<br/>` : '';
+          const header = dps.length > 0 ? `${DateHelper.formatTicks(<number>typedParams.head().value().axisValue)}<br/>` : '';
           return `${header}${dps.join('<br/>')}`;
         } else {
           return '?';
@@ -204,24 +223,23 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
               value: x.value[1],
               interval: (<any[]>x.value).length === 5 && <Interval>x.value[4]
             }
-          });
-        const dps = typedParams
-          .groupBy(x => x.seriesInfo.model.source)
-          .map((x, key) => {
+          }).orderBy(x => x.value, 'desc');
+        const dps = (typedParams.some(x => x.seriesInfo.$type === 'DataSourceSeriesInfo') ? typedParams.groupBy(x => x.seriesInfo.model.source) : typedParams)
+          .map(x => {
             const groupHeader = _.find(x, s => s.seriesInfo.$type === 'DataSourceSeriesInfo');
             const modelGroups = _.groupBy(_.orderBy(_.filter(x, s => s.seriesInfo.$type !== 'DataSourceSeriesInfo'), 'value', 'desc'), s => s.seriesInfo.model.name);
 
             const itemStrs = _.map(modelGroups, m => {
               const point = _.find(m, s => !s.interval);
               const ci = _.find(m, s => !!s.interval);
-              return `${point.marker} ${point.label} ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
+              return `${groupHeader ? '&nbsp;&nbsp;&nbsp;' : ''}${point.marker} ${point.label} ${NumberHelper.formatInt(point.value)}` + (ci && ci.interval.lower !== ci.interval.upper ? ` (${NumberHelper.formatInt(ci.interval.lower)} - ${NumberHelper.formatInt(ci.interval.upper)})` : '');
             });
 
             const header = groupHeader ? `${groupHeader.marker} ${groupHeader.label} ${NumberHelper.formatInt(groupHeader.value)}` : '';
             return `${header}${header && itemStrs.length > 0 ? '<br/>' : ''}${itemStrs.join('<br/>')}`;
           }).value();
 
-        const header = dps.length > 0 ? `${moment(typedParams.head().value().axisValue).format('MM-DD-YYYY')}<br/>` : '';
+        const header = dps.length > 0 ? `${DateHelper.formatTicks(<number>typedParams.head().value().axisValue)}<br/>` : '';
         return `${header}${dps.join('<br/>')}`;
       } else {
         return '?';
@@ -234,7 +252,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     if (series.model.style.symbol === 'triangle') {
       svgContent = '<polygon points="8,2 14,14 2,14"'
     }
-    svgContent += ` stroke-width="1" stroke="${series.model.style.color}" fill="${series.$type === 'DataSourceSeriesInfo' ? series.model.style.color : 'transparent'}" />`
+    svgContent += ` stroke-width="2" stroke="${series.model.style.color}" fill="${series.$type === 'DataSourceSeriesInfo' ? series.model.style.color : 'white'}" />`
     return `<svg version="1.1" xmlns="http://www.w3.org/2000/svg" style="height: 16px;width: 16px;" class="d-block-inline">${svgContent}</svg>`
   }
 
@@ -250,6 +268,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
             markArea: {
               itemStyle: {
                 color: x.model.style.color,
+
                 opacity: 0.4
               },
               data: d.filter(p => !!p.interval).map(p => {
@@ -258,6 +277,14 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
                   { xAxis: moment(p.x).add(2, 'd').toDate(), yAxis: p.interval.lower }
                 ]
               })
+            },
+            itemStyle: {
+              borderWidth: 2,
+              color: 'white',
+              borderColor: x.model.style.color
+            },
+            lineStyle: {
+              color: x.model.style.color
             },
             animationDuration: 100,
             color: x.model.style.color,
@@ -272,15 +299,18 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           name: x.model.name,
           id: `${settings?.location?.id || ''} - ${x.model.name}`,
           data: (x.data as SeriesInfoDataItem[]).map(d => ([d.x.toDate(), d.y, d, _.omit(x, 'data')])),
+          itemStyle: {
+            borderWidth: 2,
+          },
           animationDuration: 500,
           color: x.model.style.color,
           symbol: x.model.style.symbol,
-          symbolSize: 8,
+          symbolSize: 10,
           symbolKeepAspect: true
         };
 
         if (x.$type === 'ForecastDateSeriesInfo') {
-          line.itemStyle = { color: 'transparent', borderColor: x.model.style.color };
+          line.itemStyle = { ...line.itemStyle, color: 'white', borderColor: x.model.style.color };
           line.lineStyle = { color: x.model.style.color };
         }
 
@@ -328,7 +358,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
           silent: true,
           symbol: 'none',
           label: {
-            formatter: forecastDate.format('YYYY-MM-DD')
+            formatter: DateHelper.format(forecastDate)
           },
           itemStyle: { color: '#333' },
           data: [
@@ -338,7 +368,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
         markArea: {
           silent: true,
           itemStyle: {
-            color: '#ccc',
+            color: '#eee',
             opacity: 0.6
           },
           data: [[{

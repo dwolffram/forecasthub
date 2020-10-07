@@ -2,13 +2,17 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.1.0.
 
+## GitHub pages
+
+Visit the site at [GitHub pages](https://signalerki.github.io/covid-forecasts)
+
 ## Aktuell
 
 ### TODO
 
 #### Misc
 
-- Polen bekommt population (gucken ob alles geht)
+- ~~Polen bekommt population (gucken ob alles geht)~~
 - ~~Settings in zwei Spalten auf großen Monitoren (siehe Layout googledoc)~~
 - ~~Titel: Datum raus + 'German and Polish COVID-19 ForecastHub' + eigene Zeile~~
 - ~~province drop down (none + 'national level')~~
@@ -22,24 +26,25 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 #### Plot
 
-- Datumsformat im Plot YYYY-MM-DD
-- colorpalette für modelle = [palette](https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11)
-- datazoom default = [MaxforeCastDate - 10 wochen, Ende];
-- YAchsenTitel = target
-- Tooltip mit `${Decimal(value, 4)} pro 100.000 Einwohner`
-- Tooltip: Forecasts einrücken + hintergrund weniger opacity + shapes umranden?
-  - Bei horizon nur das '3wk ahead' (auswahl) anzeigen
-- Symbole im plot und legende dickerer Rand
-- Forecast Symbole im Plot weiß ausfüllen anstatt transparent
-- ForecastArea heller
-- observed ForecastPoints nur der letzte wird angezeigt
+- ~~Datumsformat im Plot YYYY-MM-DD~~
+- ~~colorpalette für modelle = [palette](https://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11)~~
+- ~~datazoom default = [MaxforeCastDate - 10 wochen, Ende];~~
+- ~~YAchsenTitel = target~~
+- ~~Bei horizon nur noch den target point (z.B. wk 3 ahead) anzeigen~~
+- ~~Tooltip: Forecasts einrücken + hintergrund weniger opacity + shapes umranden?~~
+  - ~~Bei horizon nur das '3wk ahead' (auswahl) anzeigen~~
+- ~~Symbole im plot und legende dickerer Rand~~
+- ~~Forecast Symbole im Plot weiß ausfüllen anstatt transparent~~
+- ~~ForecastArea heller~~
+- ~~observed ForecastPoints nur der letzte wird angezeigt~~
 
 #### Map
 
-- email irgendwo anlegen und account auf stadia registrieren für tiles
-- Karte in Graustufen einfärben, nicht aktives Land nur umranden, ohne füllung
-- Karte ohne Legende und Caption mit Target und ist Observed
+- ~~email irgendwo anlegen und account auf stadia registrieren für tiles~~
+- ~~Karte in Graustufen einfärben, nicht aktives Land nur umranden, ohne füllung~~
+- ~~Karte ohne Legende und Caption mit Target und ist Observed~~
 - Shapes mit in App
+- ~~Tooltip mit `${Decimal(value, 4)} pro 100.000 Einwohner`~~
 
 ## 02.10.20
 
@@ -98,10 +103,6 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 - ~~Location ist pflicht. NONE ist nicht erlaubt~~
   - ~~location via url steuerbar~~
-
-## GitHub pages
-
-Visit the site at [GitHub pages](https://signalerki.github.io/covid-forecasts)
 
 ## Development server
 

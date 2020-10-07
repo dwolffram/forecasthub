@@ -22,7 +22,7 @@ import { LoadingSpinnerComponent } from './components/loading-spinner/loading-sp
 import { TeamComponent } from './pages/team/team.component';
 import { DataComponent } from './pages/data/data.component';
 import { TutorialComponent } from './pages/tutorial/tutorial.component';
-import { LeafletColorLegendDirective } from './directives/leaflet-color-legend.directive';
+import { LeafletExtentionDirective } from './directives/leaflet-extention.directive';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { TutorialItemDescriptionComponent } from './components/tutorial-item-description/tutorial-item-description.component';
 import { TutorialItemDescriptionDirective } from './directives/tutorial-item-description.directive';
@@ -53,7 +53,7 @@ import { LabelDataSourcePipe } from './pipes/label-data-source.pipe';
     TeamComponent,
     DataComponent,
     TutorialComponent,
-    LeafletColorLegendDirective,
+    LeafletExtentionDirective,
     TutorialItemDescriptionComponent,
     TutorialItemDescriptionDirective,
     EmptyComponent,
