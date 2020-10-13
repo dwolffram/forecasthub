@@ -12,6 +12,32 @@ Visit the site at [GitHub pages](https://signalerki.github.io/covid-forecasts)
 
 #### Misc
 
+- No forecasts available in legende datasource
+- Die vertikalen Linien im Plot sollten immer auf den Samstagen liegen.
+- Die Farbsymbole in der Legende müssen besser sichtbar sein. Entschuldige das Hin und Her, aber wir würden gern mal sehen, wie es aussieht, wenn man die Punkte komplett in der jeweils dunklen (also nicht transparenten) Farbe ausfüllt. Die Unterscheidung Beobachtet vs Forecast ist dann halt nur durch grau vs farbig gegeben.
+- ~~Null-Werte werden in Mousetips der Karte nicht gezeigt (z.B. inc death Brandenburg)~~
+- ~~Etwas mehr vertikaler white space um "German and Polish COVID-19 ForecastHub" herum sowie zwischen den Map + Bedienelementen oben und Legende + Plot unten~~
+- Höhe des Plots ändert sich mit Target-Auswahl. Sollte besser konstant sein.
+- Evtl. die Liste der Modelle scrollbar machen, damit man dafür nicht die gesamte Seite scrollen muss. Deswegen ändert sich vermutlich auch die Höhe des Plots?
+- Replace the A in the small logo shown in the tab header by something else (F?)
+- ~~Cum. Deaths / Inc. Deaths anstatt Death (Bei der Target-Auswahl und im Plot bei der Y-Achse). In den csv Files ist das ohne “s”, aber hier macht es mehr Sinn mit~~
+- ~~“Prediction Interval” anstatt “Confidence Interval”~~
+- ~~In der Tutorial-Variante sind manche Dinge etwas gestaucht~~
+- ~~“Selection: None All Ensemble” linksbündig und “Selection” so schreiben wie die anderen Labels (Location etc), d.h. ohne Rahmen~~
+- ~~Ersetze “Date: Oct 5, 2020” unten durch “Last update: Oct 5, 2020”.~~
+- Das Gelb (siehe Screenshot) ist zu hell, das muss aus der Farbpalette raus
+- ~~Models originally based on jhu data bzw. ecdc data -> JHU data bzw. ECDC data.~~
+- ~~“Shift models to” -> “Shift forecasts to”~~
+- ~~“ECDC/RKI/MZ” und “JHU” -> “Truth ECDC/RKI/MZ” und “Truth JHU” (haben glaube ich im Gespräch letztes Mal erst entschieden, das “Truth” weg zu lassen, hätten es jetzt aber doch gern).~~
+- ~~Außerdem wollen wir ungern das selbe grau verwenden wie bei den klickbaren Oberflächen. Vorschlag: gleicher Farbhintergrund wie bei „Models originally based on“ und dazu ein grauer Rahmen um die Zelle wie jetzt bei „Selection“~~
+- ~~Wir sehen “Show forecasts by” eher als Experten-Feature und würden es deswegen vorziehen, wenn das Datum in der linken und “Show forecasts by” in der rechten Spalte gezeigt wird (selbst wenn das etwas gegen die Leserichtung geht).~~
+
+## 09.10.20
+
+### TODO
+
+#### Misc
+
 - ~~Polen bekommt population (gucken ob alles geht)~~
 - ~~Settings in zwei Spalten auf großen Monitoren (siehe Layout googledoc)~~
 - ~~Titel: Datum raus + 'German and Polish COVID-19 ForecastHub' + eigene Zeile~~
@@ -83,8 +109,8 @@ Visit the site at [GitHub pages](https://signalerki.github.io/covid-forecasts)
   - ~~Team: Wir und Ihr zusammen ein Team~~
   - ~~Data: Quellen und Methoden~~
   - ~~Link Github repo im header und im footer~~
-- Gibt es eine preferierte Quelle für Geojsons/Shapes, sollen die von 'irgendwo' geladen werden oder mit ins repo gepackt?
-  - Mit ins Repo packen
+- ~~Gibt es eine preferierte Quelle für Geojsons/Shapes, sollen die von 'irgendwo' geladen werden oder mit ins repo gepackt?~~
+  - ~~Mit ins Repo packen~~
 - ~~Modelle einzeln shiften? NEIN golbaler schalter, geshiftete modelle bekommen symbol der datasource~~
 - ~~Werden zukünftig noch weitere Datenquellen folgen, wenn ja: Soll das dynamisch bzw via config gehandelt werden oder kann jmd typescript/angular und passt das an?~~
   - ~~nur eine weitere Datenquelle DIVI~~

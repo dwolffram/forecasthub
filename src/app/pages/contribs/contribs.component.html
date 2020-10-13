@@ -1,0 +1,148 @@
+<div class="container">
+  <h3 class="display-3">Contributors</h3>
+
+  <p>The German and Polish COVID-19 Forecast Hub is a collaborative effort based on work from a large number of research
+    groups.</p>
+
+  <h4 class="display-4">Teams contributing forecasts</h4>
+
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3">
+    <div class="col mb-4" *ngFor="let cont of contribs">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title"><a target="_blank" [attr.href]="cont.link">{{cont.name}}</a></h5>
+          <p class="card-text">{{cont.method}}</p>
+        </div>
+        <!-- <div class="card-footer">
+          <small class="text-muted"><a target="_blank" [attr.href]="cont.link">more...</a></small>
+        </div> -->
+      </div>
+    </div>
+    <!-- <div class="col mb-4">
+      <div class="card h-100">
+        <img src="https://www.montessori-schule-goettingen.de/images/KollegInnen_2018/IMG_8999.jpg"
+          class="card-img-top img-fluid" alt="">
+        <div class="card-body">
+          <h5 class="card-title">Team Montesori</h5>
+          <p class="card-text">I contain explanations about the team. Lorem ipsum dolor sit amet, consetetur sadipscing
+            elitr, sed diam nonumy eirmod tempor invidunt ut l...</p>
+        </div>
+        <div class="card-footer">
+          <small class="text-muted">Visit us at <a href="#">Facebook</a> or on our <a href="#">Teampage</a>.</small>
+        </div>
+      </div>
+    </div>
+    <div class="col mb-4">
+      <div class="card h-100">
+        <img src="https://www.montessori-schule-goettingen.de/images/KollegInnen_2018/IMG_8999.jpg"
+          class="card-img-top img-fluid" alt="">
+        <div class="card-body">
+          <h5 class="card-title">Team Montesori</h5>
+          <p class="card-text">I contain explanations about the team. WITH EVEN MORE TEXT TEXT TEXT TEXT TEXT. Lorem
+            ipsum dolor sit amet, consetetur sadipscing
+            elitr, sed diam nonumy eirmod tempor invidunt ut l...</p>
+        </div>
+        <div class="card-footer">
+          <small class="text-muted">Visit us at <a href="#">Facebook</a> or on our <a href="#">Teampage</a>.</small>
+        </div>
+      </div>
+    </div>
+    <div class="col mb-4">
+      <div class="card h-100">
+        <img src="https://www.montessori-schule-goettingen.de/images/KollegInnen_2018/IMG_8999.jpg"
+          class="card-img-top img-fluid" alt="">
+        <div class="card-body">
+          <h5 class="card-title">Team Montesori</h5>
+          <p class="card-text">I contain explanations about the team. Less text</p>
+        </div>
+        <div class="card-footer">
+          <small class="text-muted">Visit us at <a href="#">Facebook</a> or on our <a href="#">Teampage</a>.</small>
+        </div>
+      </div>
+    </div> -->
+  </div>
+
+  <h4 class="display-4">Development</h4>
+
+  <div class="card-deck">
+    <div class="card">
+      <img src="https://lunawood.com/wp-content/uploads/2018/02/placeholder-image.png" class="card-img-top mx-auto"
+        style="width: 200px;" alt="LOGO ForecastHub">
+      <div class="card-body">
+        <h5 class="card-title">Forecast Hub Team</h5>
+        <p class="card-text">The German and Polish COVID-19 ForecastHub is run by members of the Chair of <a
+            href="https://statistik.econ.kit.edu/index.php" target="_blank">Econometrics
+            and Statistics at Karlsruhe Institute of Technology</a> and the
+          <a href="https://www.h-its.org/research/cst/" target="_blank">Computational Statistics Group at Heidelberg
+            Institute for Theoretical Studies</a>. The following persons have contributed to this project (in
+          alphabetical
+          order):
+        </p>
+        <ul>
+          <li>Johannes Bracher</li>
+          <li>Jannik Deuschel</li>
+          <li>Tilmann Gneiting</li>
+          <li>Konstantin Görgen</li>
+          <li>Jakob Ketterer</li>
+          <li>Melanie Schienle</li>
+          <li>Daniel Wolffram</li>
+        </ul>
+      </div>
+      <!-- <div class="card-footer">
+        <small class="text-muted">Visit us at <a href="#">Github</a>.</small>
+      </div> -->
+    </div>
+
+    <div class="card">
+      <img src="/assets/signale.png" class="card-img-top img-fluid mx-auto" style="width: 180px;"
+        alt="Logo Signale@RKI">
+      <div class="card-body">
+        <h5 class="card-title">The Signale Team at Robert Koch Institut </h5>
+        <p class="card-text">
+          The Signale Team at Robert Koch Institut supports the Forecast Hub platform with expertise on epidemiological
+          and data aspects and has implemented the interactive dashboard.
+          Contributing team members (in alphabetical order):
+        </p>
+        <ul>
+          <li>Fabian Eckelmann</li>
+          <li>Knut Perseke</li>
+          <li>Alexander Ullrich</li>
+        </ul>
+      </div>
+      <div class="card-footer">
+        <small class="text-muted">Visit us on our <a
+            href="https://www.rki.de/EN/Content/infections/epidemiology/signals/signals_node.html">Teampage
+            (RKI)</a>.</small>
+      </div>
+    </div>
+  </div>
+
+  <h4 class="display-4">Acknowledgements</h4>
+
+  <p>
+    The effort parallels the US COVID-19 forecast hub run by the UMass-Amherst Influenza Forecasting Center of
+    Excellence
+    based at the Reich Lab. Many technical choices and software have been taken over from this effort. We would like to
+    thank the Reich Lab Team for their generous support and the fruitful collaboration.
+  </p>
+
+  <p>
+    We would like to thank Michal Rogalski for aggregating Polish regional-level data and making them available in a
+    machine-readable <a href="https://github.com/KITmetricslab/covid19-forecast-hub-de/blob/master/data-truth/MZ/bit.ly/covid19-poland" target="_blank">form</a>.
+  </p>
+
+  <p>
+    The Forecast Hub project is part of the SIMCARD Information& Data Science Pilot Project funded by the Helmholtz
+    Association. We moreover wish to acknowledge the Alexander von Humboldt Foundation whose support facilitated early
+    interactions and collaboration with the Reich Lab.
+    The content of this site is solely the responsibility of the authors and does not necessarily represent the official
+    views of KIT, HITS, RKI, the Humboldt Foundation or the Helmholtz Association.
+  </p>
+
+  <h4 class="display-4">Contact</h4>
+
+  <p>
+    In case of questions please get in touch with <a href="https://statistik.econ.kit.edu/mitarbeiter_2902.php" target="_blank">Johannes Bracher</a>.
+  </p>
+
+</div>

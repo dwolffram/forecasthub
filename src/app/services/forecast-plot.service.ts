@@ -10,7 +10,8 @@ import { DataService } from './data.service';
 import { map, tap, shareReplay } from 'rxjs/operators';
 import { SeriesInfo, ForecastSeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfoDataItem, Interval, DataSourceSeriesInfoDataItem, ForecastDateSeriesInfo, ForecastHorizonSeriesInfo, ModelInfo } from '../models/series-info';
 import { values } from 'lodash';
-import { LabelDataSourcePipe } from '../pipes/label-data-source.pipe';
+import { LabelTruthToPlotValuePipe } from '../pipes/label-truth-to-plot-value.pipe';
+import { LabelTruthToPlotSourcePipe } from '../pipes/label-truth-to-plot-source.pipe';
 
 export interface ForecastSettingsBase<T extends ForecastDisplayMode> {
   location: LocationLookupItem;
@@ -134,8 +135,16 @@ export class ForecastPlotService implements OnDestroy {
     this._confidenceInterval.next(value);
   }
 
+  private getNextSaturday(date: moment.Moment){
+    const sat =date.isoWeekday() === 6 ? date : moment(date).isoWeekday(6);
+    return sat;
+  }
+
   constructor(private lookupService: LookupService, private dataService: DataService) {
-    this.dateRange$ = this.lookupService.forecastDates$.pipe(map(dates => [moment(dates.minimum).add(-3, 'w').endOf('day'), moment(dates.maximum).add(6, 'w').endOf('day')]))
+    this.dateRange$ = this.lookupService.forecastDates$.pipe(map(dates => [
+      this.getNextSaturday(moment(dates.minimum).add(-3, 'w').startOf('day')),
+      this.getNextSaturday(moment(dates.maximum).add(6, 'w').startOf('day'))]
+    ));
 
     this.location$ = combineLatest([this.userLocation$, this.lookupService.locations$])
       .pipe(map(([userLocation, defaultLocation]) => {
@@ -381,7 +390,7 @@ export class ForecastPlotService implements OnDestroy {
     }
   }
 
-  private dsNamePipe = new LabelDataSourcePipe();
+  private dsNamePipe = new LabelTruthToPlotSourcePipe();
   private getDataSourceName(source: TruthToPlotSource) {
     return this.dsNamePipe.transform(source);
   }

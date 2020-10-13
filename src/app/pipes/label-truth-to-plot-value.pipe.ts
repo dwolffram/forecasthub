@@ -11,18 +11,18 @@ export class LabelTruthToPlotValuePipe implements PipeTransform {
     if (trim) {
       switch (value) {
         case TruthToPlotValue.CumulatedCases: return 'Cum. Cases'
-        case TruthToPlotValue.CumulatedDeath: return 'Cum. Death'
+        case TruthToPlotValue.CumulatedDeath: return 'Cum. Deaths'
         case TruthToPlotValue.IncidenceCases: return 'Inc. Cases'
-        case TruthToPlotValue.IncidenceDeath: return 'Inc. Death'
+        case TruthToPlotValue.IncidenceDeath: return 'Inc. Deaths'
         default: return `Unknown TruthToPlotValue (${value})`;
       }
     }
 
     switch (value) {
       case TruthToPlotValue.CumulatedCases: return 'Cumulated Cases'
-      case TruthToPlotValue.CumulatedDeath: return 'Cumulated Death'
+      case TruthToPlotValue.CumulatedDeath: return 'Cumulated Deaths'
       case TruthToPlotValue.IncidenceCases: return 'Incidence Cases'
-      case TruthToPlotValue.IncidenceDeath: return 'Incidence Death'
+      case TruthToPlotValue.IncidenceDeath: return 'Incidence Deaths'
       default: return `Unknown TruthToPlotValue (${value})`;
     }
   }

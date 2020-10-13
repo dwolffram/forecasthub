@@ -63,11 +63,6 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
         console.log("created chartOptions", options, "for", activeSeries.series, dateRange);
         return { chartOptions: options, settings: activeSeries.settings, hasSeries: activeSeries.hasSeries, dates: availableDates };
       }));
-
-    // this.data$ = combineLatest([chartOption$, this.lookupService.forecastDates$])
-    //   .pipe(map(([chartOptions, dates]) => {
-    //     return { chartOptions: chartOptions.options, dates, settings: chartOptions.settings, hasSeries: chartOptions.hasSeries }
-    //   }));
   }
 
   zrClick(event: any, dates: ForecastDateLookup, currentSettings: ForecastSettings) {
@@ -93,7 +88,6 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
       this._lastDataZoom = { start: event.start, end: event.end };
     }
   }
-
 
   onChartInit(event: ECharts) {
     this._chart = event;
@@ -126,9 +120,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     const xAxis: any = {
       type: 'time',
-      minInterval: 1000 * 3600 * 24 * 7,
-      splitNumber: 10,
-      // maxInterval: 1000 * 3600 * 24 * 7,
+      minInterval: 1,
+      interval: 1000 * 3600 * 24 * 7,
       axisLabel: {
         formatter: (value, index) => {
           return DateHelper.formatTicks(value);
@@ -371,11 +364,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
             color: '#eee',
             opacity: 0.6
           },
-          data: [[{
-            xAxis: 'min',
-          }, {
-            xAxis: forecastDate.toDate(),
-          }]]
+          data: [[{ xAxis: 'min', }, { xAxis: forecastDate.toDate(), }]]
         }
 
       }

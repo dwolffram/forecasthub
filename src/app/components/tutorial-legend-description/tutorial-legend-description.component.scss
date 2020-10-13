@@ -1,6 +1,23 @@
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins/_breakpoints";
+
 :host {
   position: absolute;
   top: 0;
   left: 0;
   z-index: 11000;
 }
+
+@include media-breakpoint-down(md) {
+ :host {
+   top: unset;
+   bottom: -1rem;
+ }
+}
+
+@include media-breakpoint-up(xl) {
+  :host {
+    width: 50%;
+  }
+ }

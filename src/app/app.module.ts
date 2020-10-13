@@ -19,14 +19,9 @@ import { LocationSelectComponent } from './components/location-select/location-s
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { LeafletResizeDirective } from './directives/leaflet-resize.directive';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
-import { TeamComponent } from './pages/team/team.component';
-import { DataComponent } from './pages/data/data.component';
+import { AboutComponent } from './pages/about/about.component';
 import { TutorialComponent } from './pages/tutorial/tutorial.component';
 import { LeafletExtentionDirective } from './directives/leaflet-extention.directive';
-import { OverlayModule } from '@angular/cdk/overlay';
-import { TutorialItemDescriptionComponent } from './components/tutorial-item-description/tutorial-item-description.component';
-import { TutorialItemDescriptionDirective } from './directives/tutorial-item-description.directive';
-import { EmptyComponent } from './components/empty/empty.component';
 import { TutorialSettingsDescriptionComponent } from './components/tutorial-settings-description/tutorial-settings-description.component';
 import { DimBackgroundComponent } from './components/dim-background/dim-background.component';
 import { TutorialLegendDescriptionComponent } from './components/tutorial-legend-description/tutorial-legend-description.component';
@@ -35,7 +30,7 @@ import { TutorialPlotDescriptionComponent } from './components/tutorial-plot-des
 import { TutorialPlotForecastDescriptionComponent } from './components/tutorial-plot-forecast-description/tutorial-plot-forecast-description.component';
 import { LabelTruthToPlotSourcePipe } from './pipes/label-truth-to-plot-source.pipe';
 import { LabelTruthToPlotValuePipe } from './pipes/label-truth-to-plot-value.pipe';
-import { LabelDataSourcePipe } from './pipes/label-data-source.pipe';
+import { ContribsComponent } from './pages/contribs/contribs.component';
 
 @NgModule({
   declarations: [
@@ -50,13 +45,10 @@ import { LabelDataSourcePipe } from './pipes/label-data-source.pipe';
     LocationSelectComponent,
     LeafletResizeDirective,
     LoadingSpinnerComponent,
-    TeamComponent,
-    DataComponent,
+    ContribsComponent,
+    AboutComponent,
     TutorialComponent,
     LeafletExtentionDirective,
-    TutorialItemDescriptionComponent,
-    TutorialItemDescriptionDirective,
-    EmptyComponent,
     TutorialSettingsDescriptionComponent,
     DimBackgroundComponent,
     TutorialLegendDescriptionComponent,
@@ -64,8 +56,7 @@ import { LabelDataSourcePipe } from './pipes/label-data-source.pipe';
     TutorialPlotDescriptionComponent,
     TutorialPlotForecastDescriptionComponent,
     LabelTruthToPlotSourcePipe,
-    LabelTruthToPlotValuePipe,
-    LabelDataSourcePipe
+    LabelTruthToPlotValuePipe
   ],
   imports: [
     BrowserModule,
@@ -77,12 +68,7 @@ import { LabelDataSourcePipe } from './pipes/label-data-source.pipe';
     NgxEchartsModule.forRoot({
       echarts: () => import('echarts')
     }),
-    FontAwesomeModule,
-    OverlayModule
-  ],
-  entryComponents: [
-    TutorialItemDescriptionComponent,
-    EmptyComponent
+    FontAwesomeModule
   ],
   providers: [],
   bootstrap: [AppComponent]

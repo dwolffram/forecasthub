@@ -68,7 +68,7 @@ export class MapComponent implements OnInit, OnDestroy {
         const pLayer = this.createProvinceLayer(poland, locationLu.get(LocationId.Poland), selectedProvince, provinceColorScaleValues, provinceColorScale);
 
         const allLayer = L.geoJSON(
-          <any>all.map(r => r.geom),
+          <any>all.map(r => r.feature),
           {
             filter: (feature) => {
               return selectedRoot ? selectedRoot.id !== feature.id : true;
@@ -148,12 +148,11 @@ export class MapComponent implements OnInit, OnDestroy {
 
     const getTooltipContent = (f: GeoJSON.Feature<GeoJSON.Geometry, any>) => {
       const locationItem = _.find(stateItem.children, x => x.id === f.id);
-      const locationValue = dataMap.has(locationItem.id) && dataMap.get(locationItem.id);
-
-      return `${locationItem.name} ${(locationValue && `${NumberHelper.formatDecimal(locationValue, 4)} per 100,000 inhabitants`) || ''}`;
+      const locationValue = dataMap.has(locationItem.id) ? dataMap.get(locationItem.id) : 0;
+      return `${locationItem.name} ${NumberHelper.formatDecimal(locationValue, 4)} per 100,000 inhabitants`;
     };
 
-    const geojsonData = shapes.map(r => r.geom);
+    const geojsonData = shapes.map(r => r.feature);
     return L.geoJSON(<any>geojsonData, {
       onEachFeature: (feature: GeoJSON.Feature<GeoJSON.Geometry, any>, layer: L.GeoJSON) => {
         if (selectedProv && selectedProv.id === feature.properties.id) {

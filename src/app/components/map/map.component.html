@@ -1,8 +1,8 @@
-<ng-container *ngIf="mapContext$ | async as mapContext">
-  <div id="map" leaflet [leafletOptions]="options" [leafletFitBounds]="correctedFitBounds || mapContext.fitBounds"
+<div class="map-container h-100 w-100">
+  <div id="map" *ngIf="mapContext$ | async as mapContext" leaflet [leafletOptions]="options" [leafletFitBounds]="correctedFitBounds || mapContext.fitBounds"
     appLeafletExtention [title]="'Last observed ' + (mapContext.plotValue | labelTruthToPlotValue)"
     appLeafletResize (resized)="onMapResized(mapContext.selectedLayer)">
     <div [leafletLayer]="mapContext.stateLayer"></div>
     <div [leafletLayer]="mapContext.provinceLayer"></div>
   </div>
-</ng-container>
+</div>

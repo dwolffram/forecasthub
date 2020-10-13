@@ -14,10 +14,10 @@
           <a class="nav-link" [routerLink]="['/forecast']" (click)="navbarCollapsed = true">Forecasts</a>
         </li>
         <li class="nav-item" [routerLinkActive]="['active']">
-          <a class="nav-link" [routerLink]="['/team']" (click)="navbarCollapsed = true">Team</a>
+          <a class="nav-link" [routerLink]="['/contributors']" (click)="navbarCollapsed = true">Contributors</a>
         </li>
         <li class="nav-item" [routerLinkActive]="['active']">
-          <a class="nav-link" [routerLink]="['/data']" (click)="navbarCollapsed = true">Data</a>
+          <a class="nav-link" [routerLink]="['/about']" (click)="navbarCollapsed = true">About</a>
         </li>
         <li class="nav-item" [routerLinkActive]="['active']">
           <a class="nav-link" [routerLink]="['/tutorial']" (click)="navbarCollapsed = true">Tutorial</a>
@@ -34,7 +34,7 @@
   </nav>
 </header>
 
-<main role="main" class="mb-3">
+<main role="main">
   <router-outlet></router-outlet>
 </main>
 

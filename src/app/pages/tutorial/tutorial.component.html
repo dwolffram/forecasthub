@@ -1,46 +1,50 @@
 <div class="container-fluid" *ngIf="loading$ | async; else loading">
   <div class="row">
-    <h4 class="display-4">Tutorial</h4>
-    <ul class="nav nav-pills">
-      <li class="nav-item">
-        <a class="nav-link" [ngClass]="{'active': step === 0}" (click)="step = 0">Settings</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" [ngClass]="{'active': step === 1}" (click)="step = 1">Map</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" [ngClass]="{'active': step === 2}" (click)="step = 2">Legend</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" [ngClass]="{'active': step === 3}" (click)="step = 3">Plot</a>
-      </li>
-    </ul>
+    <div class="col-auto">
+      <h4 class="display-4">Tutorial</h4>
+    </div>
+    <div class="col-auto align-self-end">
+      <ul class="nav nav-pills mb-2">
+        <li class="nav-item">
+          <a class="nav-link" [ngClass]="{'active': step === 0}" (click)="step = 0">Settings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [ngClass]="{'active': step === 1}" (click)="step = 1">Map</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [ngClass]="{'active': step === 2}" (click)="step = 2">Legend</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [ngClass]="{'active': step === 3}" (click)="step = 3">Plot</a>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <div class="row">
-    <div class="col-md-4 mb-3">
+    <div class="col-md-4 d-none d-md-block">
       <app-map></app-map>
-      <app-dim-background *ngIf="step !== 1" height="calc(100% + 1rem)"></app-dim-background>
-      <app-tutorial-settings-description *ngIf="step === 0"></app-tutorial-settings-description>
-    </div>
-    <div class="col-md-8 mb-3">
-      <app-title-settings></app-title-settings>
-      <app-dim-background *ngIf="step !== 0" height="calc(100% + 1rem)"></app-dim-background>
-      <app-tutorial-map-description *ngIf="step === 1"></app-tutorial-map-description>
-      <app-tutorial-plot-forecast-description *ngIf="step === 3"></app-tutorial-plot-forecast-description>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-md-4">
-      <app-legend></app-legend>
-      <app-dim-background *ngIf="step !== 2"></app-dim-background>
-      <app-tutorial-plot-description *ngIf="step === 3"></app-tutorial-plot-description>
+      <app-dim-background *ngIf="step !== 1"></app-dim-background>
     </div>
     <div class="col-md-8">
+      <app-title-settings></app-title-settings>
+      <app-dim-background *ngIf="step !== 0"></app-dim-background>
+      <app-tutorial-map-description *ngIf="step === 1"></app-tutorial-map-description>
+      <!-- <app-tutorial-plot-forecast-description *ngIf="step === 3"></app-tutorial-plot-forecast-description> -->
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12 order-lg-4 col-lg-8">
       <app-forecast-plot></app-forecast-plot>
       <app-dim-background *ngIf="step !== 3"></app-dim-background>
       <app-tutorial-legend-description *ngIf="step === 2"></app-tutorial-legend-description>
+      <app-tutorial-settings-description *ngIf="step === 0"></app-tutorial-settings-description>
+    </div>
+    <div class="col-12 order-lg-1 col-lg-4">
+      <app-legend></app-legend>
+      <app-dim-background *ngIf="step !== 2"></app-dim-background>
+      <app-tutorial-plot-description *ngIf="step === 3"></app-tutorial-plot-description>
     </div>
   </div>
 

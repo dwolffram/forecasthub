@@ -1,50 +1,60 @@
-<div class="alert alert-info">
+<div class="alert alert-info alert-tutorial">
   <!-- <h4 class="display-4">&nbsp;</h4>-->
   <h4 class="alert-heading">Settings</h4>
 
-  <div class="row form-group">
-    <div class="col-12 col-form-label text-right">
-      Location is used to...
+  <p>
+    Here you can specify which forecasts you want to show and how they should be displayed.
+  </p>
+
+  <div class="row">
+    <div class="col-6">
+      <div class="row form-group">
+        <div class="col-12 col-form-label">
+          <b>Location</b> Select for which location you want to show forecasts. We currently collect forecasts for
+          Germany and Poland. There are also regional-level forecasts (German states or Polish voivodeships), but fewer
+          teams make these available.
+        </div>
+      </div>
+
+      <div class="row form-group">
+        <div class="col-12 col-form-label">
+          <b>Target</b> Forecasts are available for confirmed cases and deaths from COVID-19. For both targets forecasts
+          can be shown on an incident (new cases or deaths) or cumulative (total cases or deaths) scale.
+        </div>
+      </div>
+
+      <div class="row form-group">
+        <div class="col-12 col-form-label">
+          <b>Forecast date / horizon</b> Here you can select for which time point or for which horizon (1 through 4
+          weeks) you want to display forecasts, depending on your choice in “Show forecast by”. Note that you can also
+          select a time point by clicking in the forecast graph below. By clicking on the play button you can start an
+          animation.
+        </div>
+      </div>
     </div>
-  </div>
+    <div class="col-6">
+      <div class="row form-group">
+        <div class="col-12 col-form-label">
+          <b>Prediction interval</b> Forecasts always come with some uncertainty. Forecasters can therefore specify
+          intervals which shall cover the true value with 50% or 95% probability. Note that not all forecasters make
+          such intervals available.
+        </div>
+      </div>
 
-  <hr>
+      <div class="row form-group">
+        <div class="col-12 col-form-label">
+          <b>Shift models to</b> Some modellers aim to forecast cases and deaths according to ECDC data, others
+          according to data from Johns Hopkins University. For cumulative forecasts it can be helpful to align all
+          forecasts with the same data to improve comparability. You can do this by selecting a truth data source here.
+        </div>
+      </div>
 
-  <div class="row form-group">
-    <div class="col-12 col-form-label text-right">
-      Target is used to...
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="row form-group">
-    <div class="col-12 col-form-label text-right">
-      Confidence Interval is used to...
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="row form-group">
-    <div class="col-12 col-form-label text-right">
-      Shift models to other datasources...
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="row form-group">
-    <div class="col-12 col-form-label text-right">
-      Show forecast by to switch between different...
-    </div>
-  </div>
-
-  <hr>
-
-  <div class="row form-group">
-    <div class="col-12 col-form-label text-right">
-      Its either the forecast date or the horizon ahead specified in weeks...
+      <div class="row form-group">
+        <div class="col-12 col-form-label">
+          <b>Show forecast by</b> You can either look at one through four-week-ahead forecasts made at a specific time
+          point or show all forecasts for a specific forecast horizon.
+        </div>
+      </div>
     </div>
   </div>
 </div>

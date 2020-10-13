@@ -51,15 +51,16 @@
 }
 
 .card-header-datasource {
-  background-color: $secondary;
-  color: $white;
+  // background-color: $secondary;
+  // color: $white;
+  border-color: $secondary;
   cursor: pointer;
 
-  svg {
-    * {
-      stroke: #eee;
-    }
-  }
+  // svg {
+  //   * {
+  //     stroke: #eee;
+  //   }
+  // }
 
   &:hover {
     background-color: $primary;

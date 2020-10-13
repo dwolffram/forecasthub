@@ -5,6 +5,8 @@
 @import '~bootstrap/scss/bootstrap';
 @import '~leaflet/dist/leaflet';
 @import './app/directives/leaflet-extention.directive.scss';
-@import '~@angular/cdk/overlay-prebuilt';
 
 
+.alert.alert-tutorial {
+  border-radius: 0;
+}

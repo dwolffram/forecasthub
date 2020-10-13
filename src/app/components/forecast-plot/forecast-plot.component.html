@@ -1,3 +1,3 @@
 <div *ngIf="data$ | async as data" echarts appEchartsZrClick (zrClick)="zrClick($event, data.dates, data.settings)"
-  [options]="data.chartOptions" class="chart" (chartDataZoom)="onDataZoom($event)" (chartInit)="onChartInit($event)">
+  [options]="data.chartOptions" class="chart mb-3" (chartDataZoom)="onDataZoom($event)" (chartInit)="onChartInit($event)">
 </div>

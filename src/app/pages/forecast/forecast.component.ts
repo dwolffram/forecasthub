@@ -38,7 +38,7 @@ export class ForecastComponent implements OnInit, OnDestroy {
     });
 
     this._footerSubscription = this.lookupService.forecastDates$.pipe(map(x => x.maximum)).subscribe(m => {
-      this.appState.addToFooter(this.footerItem = { content: `Date: ${this.dateFormatPipe.transform(m.toDate())}` });
+      this.appState.addToFooter(this.footerItem = { content: `Last update: ${this.dateFormatPipe.transform(m.toDate())}` });
     });
   }
 

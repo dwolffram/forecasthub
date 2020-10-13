@@ -2,11 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import { faCalculator, faChartLine, faDatabase, faNotEqual, faServer, faVenusMars } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
-  selector: 'app-data',
-  templateUrl: './data.component.html',
-  styleUrls: ['./data.component.scss']
+  selector: 'app-about',
+  templateUrl: './about.component.html',
+  styleUrls: ['./about.component.scss']
 })
-export class DataComponent implements OnInit {
+export class AboutComponent implements OnInit {
 
   icons = {
     gather: faDatabase,

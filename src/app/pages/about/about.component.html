@@ -1,0 +1,110 @@
+<div class="container">
+  <h3 class="display-3">About</h3>
+  <p>
+    The German and Polish COVID-19 ForecastHub aims to bring together short-term forecasts of the further course of the
+    pandemic in Germany and Poland. Our goal is to systematically compare different predictions, identify particularly
+    reliable models and assess whether combinations of different forecasts can yield more reliable results.
+  </p>
+
+  <p>
+    The platform is run by members of the Chair of Statistics and Econometrics
+    (https://statistik.econ.kit.edu/index.php) at Karlsruhe Institute of Technology and the Computational Statistics
+    Group (https://www.h-its.org/research/cst/) at Heidelberg Institute for Theoretical Studies, with support from the
+    <a href="https://www.rki.de/EN/Content/infections/epidemiology/signals/signals_node.html" target="_blank">Signale
+      Team at Robert Koch Institut</a>. The project is developed in close
+    exchange with the <a href="https://covid19forecasthub.org/doc/" target="_blank">US COVID-19 ForecastHub</a> run by
+    the <a href="https://reichlab.io/" target="_blank">Reich Lab</a> at the University of Massachusetts, Amherst.
+  </p>
+  <p>
+    This project is public and all forecasts can be downloaded from our <a
+      href="https://github.com/KITmetricslab/covid19-forecast-hub-de" target="_blank">github repository</a>. More ample
+    information on this project can be found in
+    the associated <a href="https://github.com/KITmetricslab/covid19-forecast-hub-de/wiki" target="_blank">Wiki</a>.
+  </p>
+
+  <p>
+    The German and Polish COVID-19 Forecast Hub also forms the basis of a pre-registered forecast evaluation study on
+    which we plan to report in 2021. The protocol is available here [Link to be added].
+  </p>
+
+  <h4 class="display-4">Forecast Targets</h4>
+
+  <p>We currently focus on short-term forecasts of confirmed cases and deaths from COVID-19. Both targets are addressed
+    both at an incident (i.e. weekly new cases and deaths) and a cumulative scale (total cases and deaths). New
+    forecasts are issued every Monday/Tuesday and cover forecast horizons of one through four weeks into the future. A
+    detailed description of forecast targets can be found <a
+      href="https://github.com/KITmetricslab/covid19-forecast-hub-de/wiki/Forecast-targets" target="_blank">here</a>.
+  </p>
+
+  <h4 class="display-4" id="datasources">Datasources</h4>
+
+  <p>Forecasts at the national level (both Poland and Germany) can refer to the two following data sources:</p>
+
+  <div class="media">
+    <img src="https://www.ecdc.europa.eu/profiles/custom/ecdc/themes/anthrax/images/logo-ecdc.png"
+      class="align-self-start mr-3" style="width: 81px;" alt="Logo ECDC">
+    <div class="media-body">
+      <h5 class="mt-0">ECDC / RKI</h5>
+      <p><a href="https://www.ecdc.europa.eu/en/geographical-distribution-2019-ncov-cases" target="_blank">European
+          Centre for Disease Prevention and Control</a></p>
+    </div>
+  </div>
+
+  <div class="media">
+    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRdNCI0J1LCAgYgpkSPNgSqD3deKT9ixQBaWA&usqp=CAU"
+      class="align-self-start mr-3" style="width: 81px;" alt="Logo John Hopkins University">
+    <div class="media-body">
+      <h5 class="mt-0">JHU</h5>
+      <p>CSSE, <a href="https://coronavirus.jhu.edu/" target="_blank">Johns Hopkins University</a></p>
+    </div>
+  </div>
+
+  <p>Our visualization tool allows users to align the different forecasts with the different ground truths. For
+    regional-level forecasts we use data from the following sources:</p>
+
+  <div class="media mb-3">
+    <img src="https://www.gov.pl/img/icons/godlo-12.svg" class="align-self-start mr-3" style="width: 81px;"
+      alt="Logo Polish Ministry of Health">
+    <div class="media-body">
+      <h5 class="mt-0">Polish Ministry of Health <small><a href="https://www.gov.pl/web/zdrowie"
+            target="_blank">visit</a></small></h5>
+      <p>
+        See <a href="https://github.com/KITmetricslab/covid19-forecast-hub-de/tree/master/data-truth/MZ"
+          target="_blank">here</a> for details on how these data are obtained.
+    </div>
+  </div>
+  <div class="media">
+    <img src="https://www.rki.de/SiteGlobals/StyleBundles/Bilder/Farbschema_A/logo_a.jpg?__blob=normal&v=7"
+      class="align-self-start mr-3" style="width: 81px;" alt="Logo RKI">
+    <div class="media-body">
+      <h5 class="mt-0">Robert Koch Institut <small><a
+            href="https://npgeo-corona-npgeo-de.hub.arcgis.com/datasets/dd4580c810204019a7b8eb3e0b329dd6_0"
+            target="_blank">visit</a></small></h5>
+      <p>See <a href="https://github.com/KITmetricslab/covid19-forecast-hub-de/tree/master/data-truth/RKI"
+          target="_blank">here</a> for details on how these data are obtained.</p>
+    </div>
+  </div>
+
+  <h4 class="display-4">Get involved</h4>
+  <p>If you are working on forecasting of COVID-19 dynamics in Germany and/or Poland do not hesitate to get in touch
+    with us.</p>
+
+  <h4 class="display-4">Forecast evaluation</h4>
+  <p>
+    One goal of this platform is to compare the forecast performance of different models systematically. Results will be
+    included on this website shortly. An outline of the methods used for evaluation can be found in this <a
+      href="https://arxiv.org/abs/2005.12881" target="_blank">preprint</a>.
+  </p>
+
+  <h4 class="display-4">Ensemble building</h4>
+  <p>
+    Each week we combine the different forecasts submitted to the platform into so-called ensemble forecasts. Such
+    combined forecasts are known to yield more reliable predictions in many domains and are becoming increasingly used
+    in epidemiology. See <a href="https://www.medrxiv.org/content/10.1101/2020.08.19.20177493v1"
+      target="_blank">here</a> for a recent preprint on
+    ensemble forecasts based on the US COVID-19 Forecast Hub. Technical details are provided in <a
+      href="https://github.com/KITmetricslab/covid19-forecast-hub-de/wiki/Creation-of-equally-weighted-ensemble"
+      target="_blank">this wiki entry</a>.
+  </p>
+
+</div>
