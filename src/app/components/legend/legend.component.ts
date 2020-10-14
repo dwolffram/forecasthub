@@ -2,7 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChange
 import * as _ from 'lodash';
 import { ForecastPlotService } from 'src/app/services/forecast-plot.service';
 import { map } from 'rxjs/operators';
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, forkJoin, Observable } from 'rxjs';
 import { SeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfo, ModelInfo } from 'src/app/models/series-info';
 import { TruthToPlotSource, TruthToPlotValue } from 'src/app/models/truth-to-plot';
 import { faChevronLeft, faChevronRight, faExclamationTriangle, faEye, faEyeSlash, faIndent, faOutdent } from '@fortawesome/free-solid-svg-icons';
@@ -49,16 +49,15 @@ export class LegendComponent implements OnInit {
   constructor(private stateService: ForecastPlotService) { }
 
   ngOnInit(): void {
-    this.dataContext$ = combineLatest([this.stateService.series$, this.stateService.availableModels$, this.stateService.shiftToSource$, this.stateService.disabledSeriesNames$])
-      .pipe(map(([series, availableModels, shiftToSource, disabledSeriesNames]) => {
+    this.dataContext$ = combineLatest([this.stateService.series$, this.stateService.availableModels$, this.stateService.disabledSeriesNames$])
+      .pipe(map(([series, availableModels, disabledSeriesNames]) => {
         const allModelNames = availableModels.map(x => x.name);
-        console.log("DATACONTEXT: ", series, availableModels, shiftToSource, disabledSeriesNames);
         return {
           plotValue: series.settings.plotValue,
           location: series.settings.location,
           ensembleModelNames: _.without(allModelNames, ...ForecastPlotService.EnsembleModelNames),
           allModelNames: allModelNames,
-          items: this._createLegendItems(availableModels, series.data, shiftToSource, disabledSeriesNames)
+          items: this._createLegendItems(availableModels, series.data, series.settings.shiftToSource, disabledSeriesNames)
         };
       }));
   }
@@ -82,17 +81,14 @@ export class LegendComponent implements OnInit {
 
   private _createLegendItems(availableModels: ModelInfo[], series: SeriesInfo[], shiftTo: TruthToPlotSource, disabledSeriesNames: string[]): DataSourceLegendItem[] {
     if (!series || series.length === 0) return [];
-    console.log("creating legend items withc disabled", disabledSeriesNames);
-
     const dataSourceSeries = series.filter(x => x.$type === 'DataSourceSeriesInfo') as DataSourceSeriesInfo[];
     const forecastSeries = series.filter(x => x.$type === 'ForecastDateSeriesInfo' || x.$type === 'ForecastHorizonSeriesInfo') as ForecastSeriesInfo[];
 
     return _.map(dataSourceSeries, x => {
-
       const ownModels = _.filter(availableModels, m => m.source === x.model.source);
       const shiftedForecasts = shiftTo && this.createForecastLegendItems(_.without(availableModels, ...ownModels), forecastSeries, disabledSeriesNames);
       const isEnabled = disabledSeriesNames && disabledSeriesNames.indexOf(x.model.name) === -1;
-      // !disabledSeriesNames || disabledSeriesNames.length === 0
+
       return {
         $type: 'DataSourceLegendItem',
         model: x.model,

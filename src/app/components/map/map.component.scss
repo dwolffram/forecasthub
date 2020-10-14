@@ -1,10 +1,31 @@
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins/_breakpoints";
+
 #map {
   height: 100%;
   width: 100%;
   min-height: 155px;
 }
 
-.map-container {
-  margin-bottom: 1rem;
-  max-height: calc(100% - 1rem);
+::ng-deep #map.tooltip-visible {
+  .leaflet-control-attribution {
+    display: none;
+  }
+
+  .info.title {
+    display: none;
+  }
+}
+
+@include media-breakpoint-down(lg) {
+  #map {
+    min-height: 286px;
+  }
+}
+
+@include media-breakpoint-down(md) {
+  #map {
+    min-height: 328px;
+  }
 }

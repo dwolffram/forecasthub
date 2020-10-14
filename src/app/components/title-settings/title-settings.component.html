@@ -1,4 +1,4 @@
-<div class="row mb-3">
+<div class="row">
   <div class="col-md-12">
     <div class="row">
       <div class="col-md-6">
@@ -11,7 +11,7 @@
         <div class="row form-group">
           <label class="col-xl-3 col-form-label">
             Target
-            <fa-icon [icon]="icons.help" [ngbTooltip]="helpTarget" container="body"></fa-icon>
+            <fa-icon [icon]="icons.help" [ngbTooltip]="helpTarget"></fa-icon>
           </label>
           <div class="col-xl-9">
             <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changePlotValue($event)"
@@ -42,7 +42,7 @@
             <div class="row form-group">
               <label class="col-xl-4 col-form-label d-flex">
                 <span class="label-text-with-icon mr-1" title="Confidence Interval">Prediction Interval</span>
-                <fa-icon [icon]="icons.help" [ngbTooltip]="helpCi" container="body">
+                <fa-icon [icon]="icons.help" [ngbTooltip]="helpCi">
                 </fa-icon>
               </label>
               <div class="col-xl-8">
@@ -65,7 +65,7 @@
             <div class="row form-group">
               <label class="col-xl-4 col-form-label d-flex">
                 <span class="label-text-with-icon mr-1" title="Shift forecasts to">Shift forecasts to</span>
-                <fa-icon [icon]="icons.help" [ngbTooltip]="helpShift" container="body"></fa-icon>
+                <fa-icon [icon]="icons.help" [ngbTooltip]="helpShift"></fa-icon>
               </label>
               <div class="col-xl-8">
                 <div class="btn-group btn-group-toggle" ngbRadioGroup (ngModelChange)="changeShiftToSource($event)"
@@ -86,8 +86,6 @@
             </div>
           </div>
         </div>
-
-
       </div>
     </div>
 

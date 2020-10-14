@@ -1,7 +1,7 @@
 <div class="container-fluid" *ngIf="loading$ | async; else loading">
   <h4 class="display-4 mb-3">German and Polish COVID-19 ForecastHub</h4>
 
-  <div class="row">
+  <div class="row mb-3">
     <div class="col-md-4 d-none d-md-block">
       <app-map></app-map>
     </div>
@@ -10,19 +10,11 @@
     </div>
   </div>
 
-  <!-- <div class="row">
-    <div class="col-12">
-      <h2 class="d-sm-none">XS</h2>
-      <h2 class="d-none d-sm-block d-md-none">SM</h2>
-      <h2 class="d-none d-md-block d-lg-none">MD</h2>
-      <h2 class="d-none d-lg-block d-xl-none">LG</h2>
-      <h2 class="d-none d-xl-block">XL</h2>
-    </div>
-  </div> -->
-
-  <div class="row">
+  <div class="row mb-3">
     <div class="col-12 order-lg-4 col-lg-8">
-      <app-forecast-plot></app-forecast-plot>
+      <div class="forecast-plot-container">
+        <app-forecast-plot></app-forecast-plot>
+      </div>
     </div>
     <div class="col-12 order-lg-1 col-lg-4">
       <app-legend></app-legend>

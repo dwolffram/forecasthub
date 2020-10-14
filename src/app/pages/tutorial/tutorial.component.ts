@@ -9,6 +9,7 @@ import { LoadingService } from 'src/app/services/loading.service';
 })
 export class TutorialComponent implements OnInit, AfterViewInit {
   loading$: Observable<any>;
+  step = 0;
 
   constructor(private loadingService: LoadingService) { }
 

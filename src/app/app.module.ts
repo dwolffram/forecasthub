@@ -17,7 +17,6 @@ import { LegendComponent } from './components/legend/legend.component';
 import { EchartsZrClickDirective } from './directives/echarts-zr-click.directive';
 import { LocationSelectComponent } from './components/location-select/location-select.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { LeafletResizeDirective } from './directives/leaflet-resize.directive';
 import { LoadingSpinnerComponent } from './components/loading-spinner/loading-spinner.component';
 import { AboutComponent } from './pages/about/about.component';
 import { TutorialComponent } from './pages/tutorial/tutorial.component';
@@ -43,7 +42,6 @@ import { ContribsComponent } from './pages/contribs/contribs.component';
     LegendComponent,
     EchartsZrClickDirective,
     LocationSelectComponent,
-    LeafletResizeDirective,
     LoadingSpinnerComponent,
     ContribsComponent,
     AboutComponent,

@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy } from '@angular/core';
+import { Component, OnInit, NgZone, Input, Output, EventEmitter, SimpleChanges, OnChanges, OnDestroy, AfterViewInit } from '@angular/core';
 import { LookupService } from 'src/app/services/lookup.service';
 import { Observable, forkJoin, BehaviorSubject, Subject, combineLatest, Subscription } from 'rxjs';
 import { defaultIfEmpty, map, tap, timeout } from 'rxjs/operators';
@@ -25,6 +25,7 @@ import { settings } from 'cluster';
 export class MapComponent implements OnInit, OnDestroy {
   mapContext$: Observable<any>;
   LocationIds = LocationId;
+  tooltipVisible = false;
 
   options: MapOptions = {
     zoomControl: false,
@@ -116,6 +117,10 @@ export class MapComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
   }
 
+  onMapReady(map: L.Map){
+    setTimeout(() => map.invalidateSize(), 250);
+  }
+
   correctedFitBounds: L.LatLngBounds;
   onMapResized(selectedLayer: L.GeoJSON): void {
     this.correctedFitBounds = selectedLayer ? selectedLayer.getBounds() : null
@@ -149,7 +154,7 @@ export class MapComponent implements OnInit, OnDestroy {
     const getTooltipContent = (f: GeoJSON.Feature<GeoJSON.Geometry, any>) => {
       const locationItem = _.find(stateItem.children, x => x.id === f.id);
       const locationValue = dataMap.has(locationItem.id) ? dataMap.get(locationItem.id) : 0;
-      return `${locationItem.name} ${NumberHelper.formatDecimal(locationValue, 4)} per 100,000 inhabitants`;
+      return `<b>${locationItem.name}</b><br/>${NumberHelper.formatDecimal(locationValue, 4)} per 100,000 inhabitants`;
     };
 
     const geojsonData = shapes.map(r => r.feature);

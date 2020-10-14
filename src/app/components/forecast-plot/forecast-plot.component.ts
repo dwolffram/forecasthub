@@ -26,7 +26,7 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
   private _highlightSubscription: Subscription;
 
   data$: Observable<{ chartOptions: EChartOption<EChartOption.Series>, dates: ForecastDateLookup, settings: ForecastSettings, hasSeries: boolean }>;
-  private _resizeSubscription: Subscription;
+  // private _resizeSubscription: Subscription;
 
   constructor(private stateService: ForecastPlotService, private lookupService: LookupService) {
 
@@ -34,16 +34,16 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this._highlightSubscription.unsubscribe();
-    this._resizeSubscription.unsubscribe();
+    // this._resizeSubscription.unsubscribe();
   }
 
   ngOnInit(): void {
     this._highlightSubscription = this.stateService.highlightedSeries$.subscribe(x => this._updateHighlight(x));
-    this._resizeSubscription = this.stateService.availableModels$.subscribe(x => {
-      if (this._chart) {
-        setTimeout(() => this._chart.resize());
-      }
-    });
+    // this._resizeSubscription = this.stateService.availableModels$.subscribe(x => {
+    //   if (this._chart) {
+    //     setTimeout(() => this._chart.resize());
+    //   }
+    // });
 
     this.data$ = combineLatest([
       this.stateService.activeSeries$
@@ -60,7 +60,6 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     ])
       .pipe(map(([activeSeries, dateRange, availableDates]) => {
         const options = this._createChartOption(activeSeries.series, dateRange, activeSeries.settings, availableDates);
-        console.log("created chartOptions", options, "for", activeSeries.series, dateRange);
         return { chartOptions: options, settings: activeSeries.settings, hasSeries: activeSeries.hasSeries, dates: availableDates };
       }));
   }
@@ -97,7 +96,6 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
     if (this._chart) {
       if (highlights && highlights.length > 0) {
         const modelName = _.map(highlights, x => x.name);
-        console.log("highlighting", modelName);
         this._chart.dispatchAction({ type: 'highlight', seriesName: modelName });
       } else {
         this._chart.dispatchAction({ type: 'downplay' });
@@ -120,8 +118,8 @@ export class ForecastPlotComponent implements OnInit, OnDestroy {
 
     const xAxis: any = {
       type: 'time',
-      minInterval: 1,
-      interval: 1000 * 3600 * 24 * 7,
+      // interval: 1000 * 3600 * 24 * 7,
+      splitNumber: 8,
       axisLabel: {
         formatter: (value, index) => {
           return DateHelper.formatTicks(value);

@@ -40,7 +40,7 @@
     </p>
   </div>
 
-  <div class="row mb-3" [ngClass]="'row-cols-' + dataContext.items.length">
+  <div class="row" [ngClass]="'row-cols-' + dataContext.items.length">
     <div class="col" *ngFor="let item of dataContext.items; let even = even;">
       <div class="card">
         <div class="card-header card-header-datasource" [ngClass]="{'datasource-disabled': !item.enabled}"
@@ -76,15 +76,17 @@
     [ngSwitch]="item.model.style.symbol">
     <polygon points="8,2 14,14 2,14" *ngSwitchCase="'triangle'" [attr.stroke-width]="2"
       [attr.stroke]="item.model.style.color"
-      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'white' : item.model.style.color" />
+      [attr.fill]="item.enabled ? item.model.style.color : 'transparent'" />
 
     <circle cx="8" cy="8" r="6" *ngSwitchDefault [attr.stroke-width]="2" [attr.stroke]="item.model.style.color"
-      [attr.fill]="item.$type === 'ForecastLegendItem' ? 'white' : item.model.style.color" />
+      [attr.fill]="item.enabled ? item.model.style.color : 'transparent'" />
   </svg>
 </ng-template>
 
 <ng-template #models let-forecasts let-roots="roots" let-even="even">
   <ul class="list-group list-group-flush">
+    <li *ngIf="!forecasts || forecasts.length === 0" class="list-group-item">No forecasts for
+      current selection available :(</li>
     <li *ngFor="let forecast of forecasts" class="list-group-item list-group-forecast-item"
       [ngClass]="{'forecast-disabled': !forecast.enabled, 'forecast-no-series': !forecast.hasSeries}"
       (mouseleave)="onMouseOver(null)" (mouseover)="onMouseOver(forecast)" (click)="toggleEnabled(forecast, roots)">

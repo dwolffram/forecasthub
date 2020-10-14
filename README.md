@@ -12,20 +12,21 @@ Visit the site at [GitHub pages](https://signalerki.github.io/covid-forecasts)
 
 #### Misc
 
-- No forecasts available in legende datasource
-- Die vertikalen Linien im Plot sollten immer auf den Samstagen liegen.
-- Die Farbsymbole in der Legende müssen besser sichtbar sein. Entschuldige das Hin und Her, aber wir würden gern mal sehen, wie es aussieht, wenn man die Punkte komplett in der jeweils dunklen (also nicht transparenten) Farbe ausfüllt. Die Unterscheidung Beobachtet vs Forecast ist dann halt nur durch grau vs farbig gegeben.
+- ~~axisLabel überlappen bei schmalem display~~
+- ~~No forecasts available in legende datasource~~
+- Die vertikalen Linien im Plot sollten immer auf den Samstagen liegen. _krieg ich nicht hin_
+- ~~Die Farbsymbole in der Legende müssen besser sichtbar sein. Entschuldige das Hin und Her, aber wir würden gern mal sehen, wie es aussieht, wenn man die Punkte komplett in der jeweils dunklen (also nicht transparenten) Farbe ausfüllt. Die Unterscheidung Beobachtet vs Forecast ist dann halt nur durch grau vs farbig gegeben.~~
 - ~~Null-Werte werden in Mousetips der Karte nicht gezeigt (z.B. inc death Brandenburg)~~
 - ~~Etwas mehr vertikaler white space um "German and Polish COVID-19 ForecastHub" herum sowie zwischen den Map + Bedienelementen oben und Legende + Plot unten~~
-- Höhe des Plots ändert sich mit Target-Auswahl. Sollte besser konstant sein.
-- Evtl. die Liste der Modelle scrollbar machen, damit man dafür nicht die gesamte Seite scrollen muss. Deswegen ändert sich vermutlich auch die Höhe des Plots?
-- Replace the A in the small logo shown in the tab header by something else (F?)
+- ~~Höhe des Plots ändert sich mit Target-Auswahl. Sollte besser konstant sein.~~
+- Evtl. die Liste der Modelle scrollbar machen, damit man dafür nicht die gesamte Seite scrollen muss. Deswegen ändert sich vermutlich auch die Höhe des Plots? _auf kleinen displays muss eh gescrollt werden. dann hat man ne scrollbar in der scrollbar und das ist immer ziemlich hässlich. soll ich das trotzdem machen?_
+- Replace the A in the small logo shown in the tab header by something else (F?) _das ist das angular standard icon_
 - ~~Cum. Deaths / Inc. Deaths anstatt Death (Bei der Target-Auswahl und im Plot bei der Y-Achse). In den csv Files ist das ohne “s”, aber hier macht es mehr Sinn mit~~
 - ~~“Prediction Interval” anstatt “Confidence Interval”~~
 - ~~In der Tutorial-Variante sind manche Dinge etwas gestaucht~~
 - ~~“Selection: None All Ensemble” linksbündig und “Selection” so schreiben wie die anderen Labels (Location etc), d.h. ohne Rahmen~~
 - ~~Ersetze “Date: Oct 5, 2020” unten durch “Last update: Oct 5, 2020”.~~
-- Das Gelb (siehe Screenshot) ist zu hell, das muss aus der Farbpalette raus
+- ~~Das Gelb (siehe Screenshot) ist zu hell, das muss aus der Farbpalette raus~~
 - ~~Models originally based on jhu data bzw. ecdc data -> JHU data bzw. ECDC data.~~
 - ~~“Shift models to” -> “Shift forecasts to”~~
 - ~~“ECDC/RKI/MZ” und “JHU” -> “Truth ECDC/RKI/MZ” und “Truth JHU” (haben glaube ich im Gespräch letztes Mal erst entschieden, das “Truth” weg zu lassen, hätten es jetzt aber doch gern).~~

@@ -1,43 +1,58 @@
-import { TemplateRef } from '@angular/core';
+import { EventEmitter, NgZone, OnDestroy, Output, TemplateRef } from '@angular/core';
 import { Directive, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { LeafletDirective } from '@asymmetrik/ngx-leaflet';
-import { Control, DomUtil, Map } from 'leaflet';
+import { Control, DomUtil, Map, ResizeEvent } from 'leaflet';
 import { ThresholdColorScale } from '../models/color-scale';
 import { NumberHelper } from '../util/number-helper';
+import * as _ from 'lodash';
 
 @Directive({
   selector: '[appLeafletExtention]'
 })
-export class LeafletExtentionDirective implements OnInit, OnChanges {
+export class LeafletExtentionDirective implements OnInit, OnChanges, OnDestroy {
 
   @Input() colorScale: ThresholdColorScale;
   @Input() title: string;
+  @Output() tooltipVisibilityChanged: EventEmitter<boolean> = new EventEmitter<boolean>();
+  @Output() resized: EventEmitter<ResizeEvent> = new EventEmitter<ResizeEvent>();
 
-  constructor(private _leaflet: LeafletDirective,) { }
+  private readonly delayedResizeEmit = _.debounce((x) => this.zone.run(() => this.resized.emit(x)), 80);
+  private readonly delayedTTVisibilityEmit = _.debounce((x) => this.zone.run(() => this.tooltipVisibilityChanged.emit(x)), 80);
+
+  private readonly onTTOpen = () => { this.zone.run(() => this.delayedTTVisibilityEmit(true)); };
+  private readonly onTTClose = () => { this.zone.run(() => this.delayedTTVisibilityEmit(false)); };
+
+  constructor(private leaflet: LeafletDirective, private zone: NgZone) { }
 
   ngOnInit(): void {
-    this._leaflet.map.whenReady(() => this.updateAll(this._leaflet.map));
+    this.leaflet.map.whenReady(() => {
+      this.registerEvents(this.leaflet.map);
+      this.updateAll(this.leaflet.map);
+    });
+  }
+
+  ngOnDestroy(): void {
+    if (this.leaflet.map) {
+      this.leaflet.map.off('resize', this.delayedResizeEmit);
+      this.leaflet.map.off('tooltipopen', this.onTTOpen);
+      this.leaflet.map.off('tooltipclose', this.onTTClose);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.colorScale) {
-      this.updateLegend(this._leaflet.map, this.colorScale);
+      this.updateLegend(this.leaflet.map, this.colorScale);
     }
-    if(changes.title){
-      this.updateTitle(this._leaflet.map, this.title);
+    if (changes.title) {
+      this.updateTitle(this.leaflet.map, this.title);
     }
   }
 
   private titleControl: Control;
   private updateTitle(map: Map, title: string) {
-    const onOpen = () => this.titleControl.remove();
-    const onClose = () => this.titleControl.addTo(map);
-
     if (this.titleControl) {
       this.titleControl.remove();
       this.titleControl = null;
-      map.off('tooltipopen', onOpen);
-      map.off('tooltipclose', onClose);
     }
 
     if (map && title !== undefined) {
@@ -47,11 +62,15 @@ export class LeafletExtentionDirective implements OnInit, OnChanges {
         div.innerHTML = title;
         return div;
       };
-      map.on('tooltipopen', onOpen);
-      map.on('tooltipclose', onClose);
       titleControl.addTo(map);
       this.titleControl = titleControl;
     }
+  }
+
+  private registerEvents(map: Map) {
+    map.on('resize', this.delayedResizeEmit);
+    map.on('tooltipopen', this.onTTOpen);
+    map.on('tooltipclose', this.onTTClose);
   }
 
   private createIntLegendItems(scale: ThresholdColorScale) {

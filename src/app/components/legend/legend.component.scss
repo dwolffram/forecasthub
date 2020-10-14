@@ -32,12 +32,6 @@
     }
   }
 
-  &.forecast-disabled {
-    .forecast-title {
-      // color: $text-muted;
-    }
-  }
-
   &.forecast-no-series {
     * {
       color: #ccc !important;
@@ -45,22 +39,15 @@
     svg {
       * {
         stroke: #ccc;
+        fill: #ccc;
       }
     }
   }
 }
 
 .card-header-datasource {
-  // background-color: $secondary;
-  // color: $white;
   border-color: $secondary;
   cursor: pointer;
-
-  // svg {
-  //   * {
-  //     stroke: #eee;
-  //   }
-  // }
 
   &:hover {
     background-color: $primary;

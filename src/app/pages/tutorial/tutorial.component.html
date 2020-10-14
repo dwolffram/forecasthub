@@ -1,5 +1,5 @@
 <div class="container-fluid" *ngIf="loading$ | async; else loading">
-  <div class="row">
+  <div class="row mb-3">
     <div class="col-auto">
       <h4 class="display-4">Tutorial</h4>
     </div>
@@ -21,35 +21,35 @@
     </div>
   </div>
 
-  <div class="row">
+  <div class="row mb-3">
     <div class="col-md-4 d-none d-md-block">
       <app-map></app-map>
-      <app-dim-background *ngIf="step !== 1"></app-dim-background>
+      <app-dim-background height="calc(100% + 1rem)" *ngIf="step !== 1"></app-dim-background>
     </div>
     <div class="col-md-8">
       <app-title-settings></app-title-settings>
-      <app-dim-background *ngIf="step !== 0"></app-dim-background>
+      <app-dim-background height="calc(100% + 1rem)" *ngIf="step !== 0"></app-dim-background>
       <app-tutorial-map-description *ngIf="step === 1"></app-tutorial-map-description>
       <!-- <app-tutorial-plot-forecast-description *ngIf="step === 3"></app-tutorial-plot-forecast-description> -->
     </div>
   </div>
 
-  <div class="row">
+  <div class="row mb-3">
     <div class="col-12 order-lg-4 col-lg-8">
-      <app-forecast-plot></app-forecast-plot>
-      <app-dim-background *ngIf="step !== 3"></app-dim-background>
+      <div class="forecast-plot-container">
+        <app-forecast-plot></app-forecast-plot>
+      </div>
+      <app-dim-background height="calc(100% + 1rem)" *ngIf="step !== 3"></app-dim-background>
       <app-tutorial-legend-description *ngIf="step === 2"></app-tutorial-legend-description>
       <app-tutorial-settings-description *ngIf="step === 0"></app-tutorial-settings-description>
     </div>
     <div class="col-12 order-lg-1 col-lg-4">
       <app-legend></app-legend>
-      <app-dim-background *ngIf="step !== 2"></app-dim-background>
+      <app-dim-background height="calc(100% + 1rem)" *ngIf="step !== 2"></app-dim-background>
       <app-tutorial-plot-description *ngIf="step === 3"></app-tutorial-plot-description>
     </div>
   </div>
-
 </div>
-
 
 <ng-template #loading>
   <app-loading-spinner></app-loading-spinner>

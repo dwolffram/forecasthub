@@ -7,7 +7,7 @@ import * as moment from 'moment';
 import { ForecastToPlot, ForecastToPlotType, QuantilePointType, QuantileType } from '../models/forecast-to-plot';
 import * as _ from 'lodash';
 import { DataService } from './data.service';
-import { map, tap, shareReplay } from 'rxjs/operators';
+import { map, tap, shareReplay, withLatestFrom } from 'rxjs/operators';
 import { SeriesInfo, ForecastSeriesInfo, DataSourceSeriesInfo, ForecastSeriesInfoDataItem, Interval, DataSourceSeriesInfoDataItem, ForecastDateSeriesInfo, ForecastHorizonSeriesInfo, ModelInfo } from '../models/series-info';
 import { values } from 'lodash';
 import { LabelTruthToPlotValuePipe } from '../pipes/label-truth-to-plot-value.pipe';
@@ -56,7 +56,7 @@ export class ForecastPlotService implements OnDestroy {
 
   private readonly _highlightedSeries = new BehaviorSubject<ModelInfo[]>(null);
   private readonly _plotValue = new BehaviorSubject<TruthToPlotValue>(TruthToPlotValue.CumulatedDeath);
-  private readonly _disabledSeriesNames = new BehaviorSubject<string[]>(['roflmao']);
+  private readonly _disabledSeriesNames = new BehaviorSubject<string[]>([]);
   private readonly _confidenceInterval = new BehaviorSubject<QuantileType>(QuantileType.Q95);
   private readonly _shiftToSource = new BehaviorSubject<TruthToPlotSource>(null);
   private readonly _userLocation = new BehaviorSubject<LocationLookupItem>(undefined);
@@ -65,14 +65,14 @@ export class ForecastPlotService implements OnDestroy {
   private _dataSourceSeriesColors = new Map<TruthToPlotSource, string>([[TruthToPlotSource.ECDC, '#555'], [TruthToPlotSource.JHU, '#999']]);
 
 
-  readonly highlightedSeries$ = this._highlightedSeries.asObservable();
-  readonly disabledSeriesNames$ = this._disabledSeriesNames.asObservable();
+  readonly highlightedSeries$ = this._highlightedSeries.asObservable().pipe(shareReplay(1));
+  readonly disabledSeriesNames$ = this._disabledSeriesNames.asObservable().pipe(shareReplay(1));
   // readonly disabledSeriesNames$: Observable<string[]>;
-  readonly plotValue$ = this._plotValue.asObservable();
-  readonly confidenceInterval$ = this._confidenceInterval.asObservable();
-  readonly shiftToSource$ = this._shiftToSource.asObservable();
-  readonly userLocation$ = this._userLocation.asObservable();
-  readonly userDisplayMode$ = this._userDisplayMode.asObservable();
+  readonly plotValue$ = this._plotValue.asObservable().pipe(shareReplay(1));
+  readonly confidenceInterval$ = this._confidenceInterval.asObservable().pipe(shareReplay(1));
+  readonly shiftToSource$ = this._shiftToSource.asObservable().pipe(shareReplay(1));
+  readonly userLocation$ = this._userLocation.asObservable().pipe(shareReplay(1));
+  readonly userDisplayMode$ = this._userDisplayMode.asObservable().pipe(shareReplay(1));
 
   readonly dateRange$: Observable<[moment.Moment, moment.Moment]>;
   readonly displayMode$: Observable<ForecastDisplayMode>;
@@ -135,8 +135,8 @@ export class ForecastPlotService implements OnDestroy {
     this._confidenceInterval.next(value);
   }
 
-  private getNextSaturday(date: moment.Moment){
-    const sat =date.isoWeekday() === 6 ? date : moment(date).isoWeekday(6);
+  private getNextSaturday(date: moment.Moment) {
+    const sat = date.isoWeekday() === 6 ? date : moment(date).isoWeekday(6);
     return sat;
   }
 
@@ -149,17 +149,20 @@ export class ForecastPlotService implements OnDestroy {
     this.location$ = combineLatest([this.userLocation$, this.lookupService.locations$])
       .pipe(map(([userLocation, defaultLocation]) => {
         return userLocation ? userLocation : defaultLocation.get('GM');
-      }));
+      })).pipe(shareReplay(1));
 
     this.displayMode$ = combineLatest([this.userDisplayMode$, this.lookupService.forecastDates$])
       .pipe(map(([userDisplayMode, defaultDisplayMode]) => {
-        return userDisplayMode !== undefined ? userDisplayMode : { $type: 'ForecastDateDisplayMode', date: defaultDisplayMode.maximum }
-      }));
+        return userDisplayMode !== undefined ? userDisplayMode : { $type: 'ForecastDateDisplayMode', date: defaultDisplayMode.maximum } as ForecastDateDisplayMode;
+      })).pipe(shareReplay(1));
 
-    this.datasourceSettings$ = combineLatest([this.location$, this.plotValue$, this.shiftToSource$]).pipe(tap(() => this.clearDisabledSeriesNames()));
+    this.datasourceSettings$ = combineLatest([this.location$, this.plotValue$, this.shiftToSource$])
+      .pipe(tap(() => this.clearDisabledSeriesNames()))
+      .pipe(shareReplay(1));
 
     const forecastSettings$ = combineLatest([this.datasourceSettings$, this.confidenceInterval$, this.displayMode$])
-      .pipe(map(([[location, plotValue, shiftToSource], confInterval, displayMode]) => ({ location, plotValue, shiftToSource, confInterval, displayMode } as ForecastSettings)));
+      .pipe(map(([[location, plotValue, shiftToSource], confInterval, displayMode]) => ({ location, plotValue, shiftToSource, confInterval, displayMode } as ForecastSettings)))
+      .pipe(shareReplay(1));
 
     this.dataSources$ = forkJoin([this.dataService.ecdcData$, this.dataService.jhuData$])
       .pipe(shareReplay(1));
@@ -173,13 +176,13 @@ export class ForecastPlotService implements OnDestroy {
 
         return { settings: { location, plotValue, shiftTo }, data: [ecdcSeries, jhuSeries].filter(x => x != null) };
       }))
-      .pipe(tap(x => console.log(`END dataSources$}`)));
+      .pipe(shareReplay(1));
 
     const filteredForecasts$ = combineLatest([this.dataService.forecasts$, forecastSettings$])
       .pipe(map(([data, settings]) => {
         const d = (!settings.location || !settings.plotValue) ? [] : _.filter(data, x => x.location === settings.location.id && x.target.value_type === settings.plotValue);
         return [d, settings] as [ForecastToPlot[], ForecastSettings];
-      }));
+      })).pipe(shareReplay(1));
 
     this.availableModels$ = filteredForecasts$.pipe(map(([data, settings]) => {
       return _.uniqWith(_.map(data, d => [d.model, d.truth_data_source]), (l, r) => l[0] === r[0] && l[1] === r[1])
@@ -195,13 +198,7 @@ export class ForecastPlotService implements OnDestroy {
             }
           } as ModelInfo;
         });
-    }));
-
-    // this.disabledSeriesNames$ = combineLatest([this._disabledSeriesNames.asObservable(), this.availableModels$])
-    //   .pipe(map(([disabledSeriesNames, availableModels]) => {
-    //     return disabledSeriesNames || _.without(availableModels.map(m => m.name), ...ForecastPlotService.EnsembleModelNames);
-    //   }))
-
+    })).pipe(shareReplay(1));
 
     const forecasts$ = filteredForecasts$
       .pipe(map(x => {
@@ -210,7 +207,7 @@ export class ForecastPlotService implements OnDestroy {
           settings: settings,
           data: this.createForecastSeries(data, settings)
         };
-      }));
+      })).pipe(shareReplay(1));
 
     this.series$ = combineLatest([datasourceSeries$, forecasts$])
       .pipe(map(([ds, fc]) => {
@@ -218,16 +215,13 @@ export class ForecastPlotService implements OnDestroy {
           data: [...ds.data, ...fc.data],
           settings: { ...ds.settings, ...fc.settings }
         };
-      }))
-      .pipe(tap(x => console.log(`END forecasts$}`)));
+      })).pipe(shareReplay(1));
 
     this.activeSeries$ = combineLatest([this.series$, this.disabledSeriesNames$])
-      .pipe(tap(x => console.log(`START activeSeries$`)))
       .pipe(map(([series, disabledSeriesNames]) => {
         if (!disabledSeriesNames || disabledSeriesNames.length === 0) return series;
         return { settings: { ...series.settings }, data: series.data.filter(x => disabledSeriesNames.indexOf(x.model.name) === -1) };
-      }))
-      .pipe(tap(x => console.log(`END activeSeries$`)));
+      })).pipe(shareReplay(1));
   }
 
   ngOnDestroy(): void {
@@ -407,7 +401,7 @@ export class ForecastPlotService implements OnDestroy {
 
   private _forecastSeriesColorMap = new Map<string, string>();
   // private _forecastSeriesColors = ['#543005', '#003c30', '#8c510a', '#01665e', '#bf812d', '#35978f', '#dfc27d', '#80cdc1', '#f6e8c3', '#c7eae5', '#f5f5f5',];
-  private _forecastSeriesColors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#ffff99'];
+  private _forecastSeriesColors = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c', '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a', '#b15928'];
 
   private _lastPickedColorIndex = -1;
   private getColor(modelName: string) {

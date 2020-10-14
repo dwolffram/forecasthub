@@ -11,3 +11,16 @@ main {
 .github-link {
   font-size: 2rem;
 }
+
+.debug-overlay {
+  position: absolute;
+  right: 15px;
+  top: 79px;
+  background-color: #eee;
+  border: #333 solid 1px;
+  padding: 10px;
+
+  &:hover {
+    opacity: 0.1;
+  }
+}
