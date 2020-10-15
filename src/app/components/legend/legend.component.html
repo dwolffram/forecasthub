@@ -40,7 +40,7 @@
     </p>
   </div>
 
-  <div class="row" [ngClass]="'row-cols-' + dataContext.items.length">
+  <div class="row legend-row" [ngClass]="'row-cols-' + dataContext.items.length">
     <div class="col" *ngFor="let item of dataContext.items; let even = even;">
       <div class="card">
         <div class="card-header card-header-datasource" [ngClass]="{'datasource-disabled': !item.enabled}"
@@ -84,7 +84,7 @@
 </ng-template>
 
 <ng-template #models let-forecasts let-roots="roots" let-even="even">
-  <ul class="list-group list-group-flush">
+  <ul class="list-group list-group-flush list-group-models">
     <li *ngIf="!forecasts || forecasts.length === 0" class="list-group-item">No forecasts for
       current selection available :(</li>
     <li *ngFor="let forecast of forecasts" class="list-group-item list-group-forecast-item"

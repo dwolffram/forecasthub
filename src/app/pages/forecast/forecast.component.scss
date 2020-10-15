@@ -1,6 +1,29 @@
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins/_breakpoints";
+
 .forecast-plot-container {
   display: grid;
   height: 630px;
+
   /* -navbar -heading -firstRow -ownMargin -footer*/
   // height: calc(100vh - 64px - 4.5rem - (155px + 1rem) - 1rem - 56px);
+}
+
+@include media-breakpoint-up(lg) {
+  .plot-row {
+    height: 630px;
+
+    > div {
+      max-height: 100%;
+    }
+
+    ::ng-deep .legend-row {
+      flex-wrap: nowrap;
+      max-height: calc(100% - 54px);
+      .card {
+        max-height: 100%;
+      }
+    }
+  }
 }

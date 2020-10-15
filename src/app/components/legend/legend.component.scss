@@ -1,4 +1,7 @@
 @import "/src/variables.scss";
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins/_breakpoints";
 
 .shrink-0 {
   flex-shrink: 0 !important;
@@ -63,3 +66,9 @@
     }
   }
 }
+
+// @include media-breakpoint-up(xl) {
+  .list-group-models {
+    overflow-y: auto;
+  }
+// }
