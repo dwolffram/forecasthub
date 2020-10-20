@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+﻿import { Pipe, PipeTransform } from '@angular/core';
 import { TruthToPlotValue } from '../models/truth-to-plot';
 
 @Pipe({
@@ -30,8 +30,8 @@ export class LabelTruthToPlotValuePipe implements PipeTransform {
     }
 
     switch (value) {
-      case TruthToPlotValue.CumulatedCases: return 'Cumulated Cases'
-      case TruthToPlotValue.CumulatedDeath: return 'Cumulated Deaths'
+      case TruthToPlotValue.CumulatedCases: return 'Cumulative Cases'
+      case TruthToPlotValue.CumulatedDeath: return 'Cumulative Deaths'
       case TruthToPlotValue.IncidenceCases: return 'Incidence Cases'
       case TruthToPlotValue.IncidenceDeath: return 'Incidence Deaths'
       default: return `Unknown TruthToPlotValue (${value})`;
