@@ -154,7 +154,7 @@ export class MapComponent implements OnInit, OnDestroy {
     const getTooltipContent = (f: GeoJSON.Feature<GeoJSON.Geometry, any>) => {
       const locationItem = _.find(stateItem.children, x => x.id === f.id);
       const locationValue = dataMap.has(locationItem.id) ? dataMap.get(locationItem.id) : 0;
-      return `<b>${locationItem.name}</b><br/>${NumberHelper.formatDecimal(locationValue, 4)} per 100,000 inhabitants`;
+      return `<b>${locationItem.name}</b><br/>${NumberHelper.formatDecimal(locationValue, 2)} per 100,000 inhabitants`;
     };
 
     const geojsonData = shapes.map(r => r.feature);

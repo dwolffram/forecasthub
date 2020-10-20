@@ -1,6 +1,6 @@
 <div id="map" *ngIf="mapContext$ | async as mapContext" leaflet [leafletOptions]="options"
   [leafletFitBounds]="correctedFitBounds || mapContext.fitBounds" [ngClass]="{'tooltip-visible': tooltipVisible}" class="h-100 w-100"
-  appLeafletExtention [title]="'Last observed ' + (mapContext.plotValue | labelTruthToPlotValue)" (leafletMapReady)="onMapReady($event)"
+  appLeafletExtention [title]="'Last observed ' + (mapContext.plotValue | labelTruthToPlotValue:false:true)" (leafletMapReady)="onMapReady($event)"
   (resized)="onMapResized(mapContext.selectedLayer)" (tooltipVisibilityChanged)="tooltipVisible = $event">
   <div [leafletLayer]="mapContext.stateLayer"></div>
   <div [leafletLayer]="mapContext.provinceLayer"></div>

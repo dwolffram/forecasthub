@@ -46,7 +46,6 @@ export interface ForecastDateDisplayMode {
 export type ForecastDisplayMode = ForecastHorizonDisplayMode | ForecastDateDisplayMode;
 
 
-// TODO: Abhängigkeiten rxjs minimieren bsp: ändern von target führt zu 11!!! neuerzeugungen des chart
 @Injectable({
   providedIn: 'root'
 })

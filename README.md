@@ -12,6 +12,10 @@ Visit the site at [GitHub pages](https://signalerki.github.io/covid-forecasts)
 
 #### Misc
 
+- Link aus Email einbauen
+- FavIco aus Email einbauen
+- blacklisting nicht mehr clearen bei setting change
+- ~~map: incidence auf 2 stellen, cumlated -> cumulative~~
 - ~~axisLabel überlappen bei schmalem display~~
 - ~~No forecasts available in legende datasource~~
 - Die vertikalen Linien im Plot sollten immer auf den Samstagen liegen. _krieg ich nicht hin_
