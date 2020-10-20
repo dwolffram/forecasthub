@@ -55,7 +55,7 @@ export class ForecastPlotService implements OnDestroy {
 
   private readonly _highlightedSeries = new BehaviorSubject<ModelInfo[]>(null);
   private readonly _plotValue = new BehaviorSubject<TruthToPlotValue>(TruthToPlotValue.CumulatedDeath);
-  private readonly _disabledSeriesNames = new BehaviorSubject<string[]>([]);
+  private readonly _enabledSeriesNames = new BehaviorSubject<string[]>(null);
   private readonly _confidenceInterval = new BehaviorSubject<QuantileType>(QuantileType.Q95);
   private readonly _shiftToSource = new BehaviorSubject<TruthToPlotSource>(null);
   private readonly _userLocation = new BehaviorSubject<LocationLookupItem>(undefined);
@@ -65,7 +65,7 @@ export class ForecastPlotService implements OnDestroy {
 
 
   readonly highlightedSeries$ = this._highlightedSeries.asObservable().pipe(shareReplay(1));
-  readonly disabledSeriesNames$ = this._disabledSeriesNames.asObservable().pipe(shareReplay(1));
+  readonly enabledSeriesNames$ = this._enabledSeriesNames.asObservable().pipe(shareReplay(1));
   // readonly disabledSeriesNames$: Observable<string[]>;
   readonly plotValue$ = this._plotValue.asObservable().pipe(shareReplay(1));
   readonly confidenceInterval$ = this._confidenceInterval.asObservable().pipe(shareReplay(1));
@@ -81,6 +81,7 @@ export class ForecastPlotService implements OnDestroy {
   readonly availableModels$: Observable<ModelInfo[]>;
   readonly dataSources$: Observable<DataSource[]>;
   readonly datasourceSettings$: Observable<[LocationLookupItem, TruthToPlotValue, TruthToPlotSource]>;
+  readonly allModelNames$: Observable<string[]>;
 
   get userLocation(): LocationLookupItem {
     return this._userLocation.getValue();
@@ -103,11 +104,11 @@ export class ForecastPlotService implements OnDestroy {
     this._shiftToSource.next(value);
   }
 
-  get disabledSeriesNames(): string[] {
-    return this._disabledSeriesNames.getValue();
+  get enabledSeriesNames(): string[] {
+    return this._enabledSeriesNames.getValue();
   }
-  set disabledSeriesNames(value: string[]) {
-    this._disabledSeriesNames.next(value);
+  set enabledSeriesNames(value: string[]) {
+    this._enabledSeriesNames.next(value);
   }
 
   get highlightedModels(): ModelInfo[] {
@@ -156,7 +157,7 @@ export class ForecastPlotService implements OnDestroy {
       })).pipe(shareReplay(1));
 
     this.datasourceSettings$ = combineLatest([this.location$, this.plotValue$, this.shiftToSource$])
-      .pipe(tap(() => this.clearDisabledSeriesNames()))
+      // .pipe(tap(() => this.clearDisabledSeriesNames()))
       .pipe(shareReplay(1));
 
     const forecastSettings$ = combineLatest([this.datasourceSettings$, this.confidenceInterval$, this.displayMode$])
@@ -164,6 +165,15 @@ export class ForecastPlotService implements OnDestroy {
       .pipe(shareReplay(1));
 
     this.dataSources$ = forkJoin([this.dataService.ecdcData$, this.dataService.jhuData$])
+      .pipe(shareReplay(1));
+
+    this.allModelNames$ = combineLatest([this.dataService.forecasts$, this.dataSources$])
+      .pipe(map(([xF, xD]) => _.uniqBy(xF, f => f.model).map(f => f.model).concat(xD.map(d => this.getDataSourceName(d.name)))))
+      .pipe(tap(x => {
+        if (this.enabledSeriesNames === null) {
+          this.enabledSeriesNames = x;
+        }
+      }))
       .pipe(shareReplay(1));
 
     const datasourceSeries$ = combineLatest([this.dataSources$, this.datasourceSettings$])
@@ -216,19 +226,19 @@ export class ForecastPlotService implements OnDestroy {
         };
       })).pipe(shareReplay(1));
 
-    this.activeSeries$ = combineLatest([this.series$, this.disabledSeriesNames$])
-      .pipe(map(([series, disabledSeriesNames]) => {
-        if (!disabledSeriesNames || disabledSeriesNames.length === 0) return series;
-        return { settings: { ...series.settings }, data: series.data.filter(x => disabledSeriesNames.indexOf(x.model.name) === -1) };
+    this.activeSeries$ = combineLatest([this.series$, this.enabledSeriesNames$])
+      .pipe(map(([series, enabledSeriesNames]) => {
+        if (!enabledSeriesNames || enabledSeriesNames.length === 0) return { settings: { ...series.settings }, data: [] };
+        return { settings: { ...series.settings }, data: series.data.filter(x => enabledSeriesNames.indexOf(x.model.name) > -1) };
       })).pipe(shareReplay(1));
   }
 
   ngOnDestroy(): void {
   }
 
-  clearDisabledSeriesNames() {
-    this.disabledSeriesNames = [];
-  }
+  // clearDisabledSeriesNames() {
+  //   this.disabledSeriesNames = [];
+  // }
 
   private createForecastSeries(data: ForecastToPlot[], settings: ForecastSettings): ForecastSeriesInfo[] {
     if (!settings || !settings.location || !settings.plotValue || !settings.displayMode || !data || data.length === 0) return [];
