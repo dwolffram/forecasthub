@@ -12,9 +12,9 @@ Visit the site at [GitHub pages](https://signalerki.github.io/covid-forecasts)
 
 #### Misc
 
-- Link aus Email einbauen
+- ~~Link aus Email einbauen~~
 - FavIco aus Email einbauen
-- blacklisting nicht mehr clearen bei setting change
+- ~~blacklisting nicht mehr clearen bei setting change~~
 - ~~map: incidence auf 2 stellen, cumlated -> cumulative~~
 - ~~axisLabel überlappen bei schmalem display~~
 - ~~No forecasts available in legende datasource~~
